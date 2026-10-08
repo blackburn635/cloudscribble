@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# CDK
+cdk.out/
+infrastructure/dist/
+
+# Mobile (Continuous Native Generation — never commit native projects)
+mobile/ios/
+mobile/android/
+mobile/.expo/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage / logs
+coverage/
+*.log
+npm-debug.log*
