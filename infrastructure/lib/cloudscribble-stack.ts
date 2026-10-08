@@ -166,11 +166,10 @@ export class CloudScribbleStack extends cdk.Stack {
       timeout: 29, // HTTP API integrations time out at 30s; scanPage budgets its calls within this
       memorySize: 512,
       environment: {
-        SCAN_MODEL_PRIMARY: 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
-        // Sonnet 5.x / Haiku 5.5 are not yet enabled for this account on Bedrock (AWS-gated); 4.6 is.
-        SCAN_MODEL_FALLBACK: 'us.anthropic.claude-sonnet-4-6',
-        SCAN_FALLBACK_BELOW: '0.9', // Haiku's confidence is optimistic; failures clustered at 0.72–0.85
-        SCAN_FALLBACK_EFFORT: 'low',
+        // Single model (eval 2026-10-08: Sonnet 4.6 94% recall / 83% exact time vs Haiku-first
+        // tiering 90% / 74% at only ~20% lower cost). Sonnet 5.x / Haiku 5.5 are AWS-gated for this
+        // account; re-run evals/ and consider SCAN_MODEL_FALLBACK tiering once they're enabled.
+        SCAN_MODEL_PRIMARY: 'us.anthropic.claude-sonnet-4-6',
       },
       policies: [
         new iam.PolicyStatement({

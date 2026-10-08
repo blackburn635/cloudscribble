@@ -5,8 +5,8 @@
  * The device writes events to the phone calendar; the server never stores them.
  */
 
-/** Fair-use cap per user per calendar month (UTC). */
-export const SCAN_MONTHLY_LIMIT = 125;
+/** Fair-use cap per user per calendar month (UTC). 100 × ~$0.0116 keeps a maxed-out user within the 30% margin at $1.99/mo. */
+export const SCAN_MONTHLY_LIMIT = 100;
 
 /** Claude reads jpeg/png/webp (not HEIC) — the app converts HEIC to JPEG before upload. */
 export const SCAN_UPLOAD_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;

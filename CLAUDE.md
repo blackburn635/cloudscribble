@@ -13,7 +13,7 @@ Reference architecture: `docs/references/tabletryb-blueprint.md` (TableTryb, a w
 - Owner: CloudScribble LLC. App name: **CloudScribble** — one app that works with any paper planner (copy must never imply CloudScribble planners only); planner buyers get a free year via Apple Offer Code.
 - Monetization (tentative): auto-renewing subscription, ~$1.99/mo and ~$17.99–19.99/yr, target ≥30% margin after store fees (15%). Free trial via Apple introductory offer (length TBD); no server-side trial.
 - CloudScribble planner buyers get **1 year free via Apple Offer Codes** (see Entitlements).
-- Fair-use cap: ~125 scans/month per user.
+- Fair-use cap: **100 scans/month** per user (`SCAN_MONTHLY_LIMIT`; keeps a maxed-out user within the 30% margin).
 
 ## Architecture (TableTryb pattern, adapted)
 - **New AWS account** for CloudScribble (`574921529456`, profile `cloudscribble`). The legacy account (`528757783633`, profile `cloudscribble-payer`) is also the Organization's payer account, so it is cleaned out, never closed. **Ask the owner before every session's first access to the legacy account**; never create, change, or delete anything there without explicit approval. It still hosts the live website (Amplify) and the `cloudscribble.com` Route 53 zone.
@@ -50,9 +50,10 @@ ORDER#<orderId>     CODE                   claimed code, claimedAt
 
 ## AI
 - Single AI Lambda. Model IDs in config, never hard-coded; verify IDs are current before each release (a retired ID caused a TableTryb outage).
-- Tiering: **Haiku 4.5 first pass**, **Sonnet fallback** on low confidence (~20% of scans). Prompt-cache the system prompt + schema.
-  - Fallback is **Sonnet 4.6** for now: Sonnet 5.x and Haiku 5.5 are AWS-gated for this account on Bedrock ("contact AWS Sales"). Re-evaluate via `evals/` once enabled.
-- Target cost ≈ $0.009/scan blended.
+- Model: **Sonnet 4.6 only** (decided 2026-10-08 from `evals/`: 94% events found / 83% exact time / ~$0.0116 per scan). Haiku 4.5 misreads handwritten digits with high confidence; Haiku-first tiering (still supported via `SCAN_MODEL_FALLBACK` + `datesConsistent`) scored 90% / 74% for only ~20% less cost.
+  - Sonnet 5.x and Haiku 5.5 are AWS-gated for this account on Bedrock ("contact AWS Sales"); owner is opening a support case. Sonnet 5.5 (~⅓ cheaper) should land ≈ $0.008/scan — re-run `evals/` once enabled.
+- Prompt-cache the system prompt + schema.
+- Target cost ≈ $0.009/scan; currently ~$0.0116 (offset by the 100/month cap).
 - Provider: **Amazon Bedrock** via `@anthropic-ai/bedrock-sdk` (`AnthropicBedrock` client → bedrock-runtime; IAM `bedrock:InvokeModel`). IAM auth only — no Anthropic API key, no AI secret in Secrets Manager. Model IDs are **inference profiles** (`us.anthropic.…`) set as Lambda env (`SCAN_MODEL_PRIMARY`/`_FALLBACK`); in us-east-2 the models are profile-only. Request Bedrock quota increases early.
 - Prompt + output schema live in `backend/functions/scans/prompt.ts`; `evals/` scores against the same conventions — change both together. Run the eval before changing models or the prompt.
 - Typed `AppError` codes for all failures (e.g. `SCAN_UNREADABLE`, `SCAN_QUOTA_EXCEEDED`, `SCAN_AI_ERROR`).
