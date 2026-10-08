@@ -1,0 +1,67 @@
+name: Deploy — Production
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies (postinstall builds shared)
+        run: npm ci
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-2
+
+      # New secret = add in three places: GitHub (both environments), BOTH workflow jq blocks, reading code.
+      # Keep this block identical to deploy-staging.yml except for the stage name.
+      - name: Sync secrets to Secrets Manager
+        run: |
+          SECRET_NAME="cloudscribble/prod/secrets"
+          SECRET_JSON=$(jq -n '{}')
+
+          if aws secretsmanager describe-secret --secret-id "$SECRET_NAME" --region us-east-2 >/dev/null 2>&1; then
+            aws secretsmanager put-secret-value \
+              --secret-id "$SECRET_NAME" \
+              --secret-string "$SECRET_JSON" \
+              --region us-east-2 >/dev/null
+          else
+            aws secretsmanager create-secret \
+              --name "$SECRET_NAME" \
+              --secret-string "$SECRET_JSON" \
+              --region us-east-2 \
+              --tags Key=Project,Value=CloudScribble Key=Stage,Value=prod >/dev/null
+          fi
+
+      - name: CDK deploy
+        working-directory: infrastructure
+        run: npx cdk deploy CloudScribble-prod --require-approval never
+
+      - name: Print outputs
+        run: |
+          aws cloudformation describe-stacks \
+            --stack-name CloudScribble-prod \
+            --region us-east-2 \
+            --query "Stacks[0].Outputs" \
+            --output table
