@@ -176,6 +176,12 @@ export class CloudScribbleStack extends cdk.Stack {
           actions: ['s3:GetObject', 's3:DeleteObject'],
           resources: [scansBucket.arnForObjects('scans/*')],
         }),
+        // Without ListBucket, S3 reports a missing key as AccessDenied instead of NoSuchKey.
+        new iam.PolicyStatement({
+          actions: ['s3:ListBucket'],
+          resources: [scansBucket.bucketArn],
+          conditions: { StringLike: { 's3:prefix': ['scans/*'] } },
+        }),
         new iam.PolicyStatement({
           actions: ['dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Query'],
           resources: [table.tableArn],
