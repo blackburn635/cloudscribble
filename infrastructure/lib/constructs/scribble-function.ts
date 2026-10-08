@@ -82,7 +82,8 @@ export class ScribbleFunction extends Construct {
         minify: true,
         target: 'es2022',
         sourceMap: true,
-        externalModules: ['@aws-sdk/*'], // Lambda-provided SDK
+        // Bundle the AWS SDK too: pinned versions, and no reliance on which packages the runtime ships.
+        externalModules: [],
       },
       // Root lockfile so workspace packages (@cloudscribble/shared) resolve in CI
       depsLockFilePath: path.join(repoRoot, 'package-lock.json'),

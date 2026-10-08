@@ -6,6 +6,7 @@ import * as apigatewayv2Integrations from 'aws-cdk-lib/aws-apigatewayv2-integrat
 import * as apigatewayv2Authorizers from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { ScribbleFunction, type ScribbleFunctionSharedEnv } from './constructs/scribble-function';
 
@@ -147,6 +148,49 @@ export class CloudScribbleStack extends cdk.Stack {
       timeout: 5,
     });
 
+    const uploadsCreate = new ScribbleFunction(this, 'UploadsCreate', {
+      stage, sharedEnv,
+      entry: 'uploads/create.ts',
+      description: 'Presigned POST for a scan image',
+      timeout: 10,
+      policies: [
+        new iam.PolicyStatement({ actions: ['s3:PutObject'], resources: [scansBucket.arnForObjects('scans/*')] }),
+      ],
+    });
+
+    // Bedrock model IDs are inference profiles (us.*), which route to foundation models in several US regions.
+    const scansCreate = new ScribbleFunction(this, 'ScansCreate', {
+      stage, sharedEnv,
+      entry: 'scans/create.ts',
+      description: 'Read a planner page with Claude (Bedrock) and return events',
+      timeout: 29, // HTTP API integrations time out at 30s; scanPage budgets its calls within this
+      memorySize: 512,
+      environment: {
+        SCAN_MODEL_PRIMARY: 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+        // Sonnet 5.x / Haiku 5.5 are not yet enabled for this account on Bedrock (AWS-gated); 4.6 is.
+        SCAN_MODEL_FALLBACK: 'us.anthropic.claude-sonnet-4-6',
+        SCAN_FALLBACK_BELOW: '0.7',
+        SCAN_FALLBACK_EFFORT: 'low',
+      },
+      policies: [
+        new iam.PolicyStatement({
+          actions: ['s3:GetObject', 's3:DeleteObject'],
+          resources: [scansBucket.arnForObjects('scans/*')],
+        }),
+        new iam.PolicyStatement({
+          actions: ['dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:Query'],
+          resources: [table.tableArn],
+        }),
+        new iam.PolicyStatement({
+          actions: ['bedrock:InvokeModel'],
+          resources: [
+            `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/us.anthropic.*`,
+            'arn:aws:bedrock:*::foundation-model/anthropic.*',
+          ],
+        }),
+      ],
+    });
+
     // ==================================================================
     // API Gateway (HTTP API)
     // ==================================================================
@@ -177,6 +221,10 @@ export class CloudScribbleStack extends cdk.Stack {
       throttlingRateLimit: 50,
       throttlingBurstLimit: 100,
     };
+    // AI route: tighter stage-wide limit (each call costs money).
+    defaultStage.routeSettings = {
+      'POST /v1/scans': { throttlingRateLimit: 10, throttlingBurstLimit: 20 },
+    };
 
     const jwtAuthorizer = new apigatewayv2Authorizers.HttpJwtAuthorizer(
       'CognitoAuthorizer',
@@ -203,6 +251,10 @@ export class CloudScribbleStack extends cdk.Stack {
 
     // --- Public routes ---
     addRoute(apigatewayv2.HttpMethod.GET, '/v1/health', healthGet, { noAuth: true });
+
+    // --- Authenticated routes ---
+    addRoute(apigatewayv2.HttpMethod.POST, '/v1/uploads', uploadsCreate);
+    addRoute(apigatewayv2.HttpMethod.POST, '/v1/scans', scansCreate);
 
     // ==================================================================
     // CloudWatch alarms

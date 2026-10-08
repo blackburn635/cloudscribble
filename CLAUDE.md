@@ -21,7 +21,8 @@ Reference architecture: `docs/references/tabletryb-blueprint.md` (TableTryb, a w
 - Serverless only: Lambda (Node 22, ARM64, esbuild via a shared function construct), API Gateway **HTTP API** with Cognito JWT authorizer, **DynamoDB** single table (on-demand, PITR, TTL on `ttl`).
 - **No** VPC, NAT, RDS, bastion, Chargebee, admin app, product catalog, or CloudFront for scans.
 - Cognito: one user pool per stage, email sign-in, web + mobile clients, admin = Cognito group. Never put billing or usage state in tokens.
-- S3 scans bucket: private, **1-day lifecycle expiration**, uploads via **presigned POST with `content-length-range`** (max 10 MB; jpeg/png/heic/webp).
+- S3 scans bucket: private, **1-day lifecycle expiration**, uploads via **presigned POST with `content-length-range`** (max 5 MB — Claude's per-image limit; jpeg/png/webp only — Claude can't read HEIC, so the app converts to JPEG).
+- HTTP API integrations time out at **30 s**: Lambdas behind it use ≤ 29 s and budget downstream calls (see `scans/ai.ts`).
 - Web: app-focused site, not a storefront (Amplify, one app). Pages: Home, How it works, FAQ, Support (contact form → public API route + SES + Turnstile), Privacy, Terms, Delete account (Cognito sign-in). Domain `cloudscribble.com` (prod apex + `www`, staging `staging.cloudscribble.com`). Registrar: Spaceship. DNS: Route 53 public hosted zone in the **new** account, defined in CDK (`CloudScribble-account`); never hand-edit records. Records pointing at legacy-account resources are marked TEMPORARY and removed after launch cutover.
 - Mobile: port the archived app's UI/flow (`cloudscribble-archived/cloudscribble-monorepo/packages/mobile`) nearly unchanged; replace internals (Bedrock scan API, Cognito + SecureStore, RevenueCat, React Navigation 7 stack), TypeScript, styles rewritten in NativeWind. Brand source files in `docs/brand/`.
 - Staging `RemovalPolicy.DESTROY`; prod `RETAIN` for table, pool, bucket.
@@ -33,25 +34,27 @@ USER#<sub>          PROFILE                lazy-created on first API call (no po
 USER#<sub>          SUBSCRIPTION#IAP       RevenueCat webhook
 USER#<sub>          SUBSCRIPTION#PLANNER   optional grant for website planner purchases (3.1.3(b))
 USER#<sub>          USAGE#<yyyy-mm>        atomic ADD; quota check before every AI call
-USER#<sub>          PAGE#<hash>            eventIds[] for rescan dedupe; TTL 1 year
 POOL                <expiresOn>#<code>     Apple offer-code pool; batchId (one partition, sorted by expiry)
 ORDER#<orderId>     CODE                   claimed code, claimedAt
 ```
 - Key patterns are immutable once shipped.
 - Subscription checks always `begins_with(SK, 'SUBSCRIPTION')` and use shared `isAccessActive()`; never point-read one record.
+- Members of Cognito group `cloudscribble-admins` bypass the subscription check (never the quota).
 
 ## Scan flow
 1. App requests presigned POST → uploads image (client downscales to ~1568px long edge, crops to page).
 2. `POST /v1/scans` → Lambda: auth → `isAccessActive()` → quota check (`USAGE#`) → AI call → validate JSON → return events.
 3. **Device writes events to calendar** (expo-calendar). No server-side Google/Outlook OAuth.
-4. Rescan of same page updates/removes prior events via `PAGE#<hash>` mapping.
+4. Rescan of the same page is matched **on the device** (by the page's dates + events the app created); the server stores no events or page mappings.
 5. No planner page codes: the AI reads dates from any page. Calendar sync may only offer to delete events the app itself created (tracked event IDs), never other events in the calendar.
 
 ## AI
 - Single AI Lambda. Model IDs in config, never hard-coded; verify IDs are current before each release (a retired ID caused a TableTryb outage).
 - Tiering: **Haiku 4.5 first pass**, **Sonnet fallback** on low confidence (~20% of scans). Prompt-cache the system prompt + schema.
+  - Fallback is **Sonnet 4.6** for now: Sonnet 5.x and Haiku 5.5 are AWS-gated for this account on Bedrock ("contact AWS Sales"). Re-evaluate via `evals/` once enabled.
 - Target cost ≈ $0.009/scan blended.
-- Provider: **Amazon Bedrock** via `@anthropic-ai/bedrock-sdk` (`AnthropicBedrockMantle` client, region from config). IAM auth only — no Anthropic API key, no AI secret in Secrets Manager. Bedrock model IDs carry the `anthropic.` prefix. Request Bedrock model access + quota increases on the new account early (Build Order step 1).
+- Provider: **Amazon Bedrock** via `@anthropic-ai/bedrock-sdk` (`AnthropicBedrock` client → bedrock-runtime; IAM `bedrock:InvokeModel`). IAM auth only — no Anthropic API key, no AI secret in Secrets Manager. Model IDs are **inference profiles** (`us.anthropic.…`) set as Lambda env (`SCAN_MODEL_PRIMARY`/`_FALLBACK`); in us-east-2 the models are profile-only. Request Bedrock quota increases early.
+- Prompt + output schema live in `backend/functions/scans/prompt.ts`; `evals/` scores against the same conventions — change both together. Run the eval before changing models or the prompt.
 - Typed `AppError` codes for all failures (e.g. `SCAN_UNREADABLE`, `SCAN_QUOTA_EXCEEDED`, `SCAN_AI_ERROR`).
 
 ## Entitlements & billing

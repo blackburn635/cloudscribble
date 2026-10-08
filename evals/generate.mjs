@@ -9,7 +9,8 @@
  *   SEED=42 npm run generate    → different but reproducible set
  *
  * Answer-key conventions (must match the scan prompt):
- *   - Times are 24h "HH:MM". Bare hours with no am/pm: 7–11 → am, 12–6 → pm.
+ *   - Times are 24h "HH:MM". Bare hours with no am/pm: 9–11 → am, 12–5 → pm, 6–8 → pm
+ *     (the prompt's no-context default in backend/functions/scans/prompt.ts).
  *   - Crossed-out entries are listed in mustNotInclude.
  *   - "Things to do" items are listed in todos (not events).
  *   - Pages without a printed year resolve to the year of scanDate.
@@ -57,7 +58,7 @@ const hhmm = (h, m) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0
 const h12 = (h) => ((h + 11) % 12) + 1;
 const ap = (h, style) => (style === 'upper' ? (h < 12 ? ' AM' : ' PM') : (h < 12 ? 'am' : 'pm'));
 /** Bare hours are only written when the convention resolves them correctly. */
-const bareOk = (h) => h >= 7 && h <= 18;
+const bareOk = (h) => h >= 9 && h <= 20;
 
 function formatTime(h, m, end) {
   const clock = (hh, mm, withMer) => {
