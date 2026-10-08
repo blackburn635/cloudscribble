@@ -239,7 +239,7 @@ export class CloudScribbleStack extends cdk.Stack {
       fn: ScribbleFunction,
       options?: { noAuth?: boolean }
     ) => {
-      httpApi.addRoutes({
+      return httpApi.addRoutes({
         path,
         methods: [method],
         integration: new apigatewayv2Integrations.HttpLambdaIntegration(
@@ -255,7 +255,10 @@ export class CloudScribbleStack extends cdk.Stack {
 
     // --- Authenticated routes ---
     addRoute(apigatewayv2.HttpMethod.POST, '/v1/uploads', uploadsCreate);
-    addRoute(apigatewayv2.HttpMethod.POST, '/v1/scans', scansCreate);
+    const scansRoutes = addRoute(apigatewayv2.HttpMethod.POST, '/v1/scans', scansCreate);
+
+    // Stage RouteSettings reference routes by key — the stage must update after those routes exist.
+    httpApi.defaultStage!.node.addDependency(...scansRoutes);
 
     // ==================================================================
     // CloudWatch alarms
