@@ -222,8 +222,9 @@ export class CloudScribbleStack extends cdk.Stack {
       throttlingBurstLimit: 100,
     };
     // AI route: tighter stage-wide limit (each call costs money).
+    // RouteSettings is untyped JSON in CloudFormation — keys must be PascalCase.
     defaultStage.routeSettings = {
-      'POST /v1/scans': { throttlingRateLimit: 10, throttlingBurstLimit: 20 },
+      'POST /v1/scans': { ThrottlingRateLimit: 10, ThrottlingBurstLimit: 20 },
     };
 
     const jwtAuthorizer = new apigatewayv2Authorizers.HttpJwtAuthorizer(
