@@ -183,13 +183,7 @@ export class AccountStack extends cdk.Stack {
       ttl: fiveMinutes,
     });
 
-    // Old storefront staging (Amplify `cloudscribble-frontend-staging`); retired when the new staging site takes `staging.`.
-    new route53.CnameRecord(this, 'TempLegacyStaging', {
-      zone,
-      recordName: 'staging',
-      domainName: 'd9ehw52m09zkv.cloudfront.net',
-      ttl: fiveMinutes,
-    });
+    // `staging.` is managed by the new Amplify app's custom domain (Amplify creates its records) — never define it here.
 
     // ==================================================================
     // SES domain identity (shared by both stages) — DKIM + MAIL FROM records created in the zone
