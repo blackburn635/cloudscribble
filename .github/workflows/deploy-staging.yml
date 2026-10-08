@@ -38,9 +38,15 @@ jobs:
       # New secret = add in three places: GitHub (both environments), BOTH workflow jq blocks, reading code.
       # Keep this block identical to deploy-prod.yml except for the stage name.
       - name: Sync secrets to Secrets Manager
+        env:
+          TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
         run: |
           SECRET_NAME="cloudscribble/staging/secrets"
-          SECRET_JSON=$(jq -n '{}')
+          SECRET_JSON=$(jq -n \
+            --arg ts "${TURNSTILE_SECRET_KEY:-}" \
+            '{
+              TURNSTILE_SECRET_KEY: $ts
+            } | with_entries(select(.value != ""))')
 
           if aws secretsmanager describe-secret --secret-id "$SECRET_NAME" --region us-east-2 >/dev/null 2>&1; then
             aws secretsmanager put-secret-value \

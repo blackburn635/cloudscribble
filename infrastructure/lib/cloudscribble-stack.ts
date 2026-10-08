@@ -196,6 +196,30 @@ export class CloudScribbleStack extends cdk.Stack {
       ],
     });
 
+    const usersDeleteMe = new ScribbleFunction(this, 'UsersDeleteMe', {
+      stage, sharedEnv,
+      entry: 'users/delete-me.ts',
+      description: 'Permanently delete the caller\'s account and data',
+      timeout: 20,
+      policies: [
+        new iam.PolicyStatement({ actions: ['dynamodb:Query', 'dynamodb:BatchWriteItem'], resources: [table.tableArn] }),
+        new iam.PolicyStatement({ actions: ['cognito-idp:AdminDeleteUser'], resources: [userPool.userPoolArn] }),
+      ],
+    });
+
+    const contactSubmit = new ScribbleFunction(this, 'ContactSubmit', {
+      stage, sharedEnv,
+      entry: 'contact/submit.ts',
+      description: 'Public support form → email to support@',
+      timeout: 10,
+      policies: [
+        new iam.PolicyStatement({
+          actions: ['ses:SendEmail'],
+          resources: [`arn:aws:ses:${this.region}:${this.account}:identity/${emailDomain}`],
+        }),
+      ],
+    });
+
     // ==================================================================
     // API Gateway (HTTP API)
     // ==================================================================
@@ -230,6 +254,7 @@ export class CloudScribbleStack extends cdk.Stack {
     // RouteSettings is untyped JSON in CloudFormation — keys must be PascalCase.
     defaultStage.routeSettings = {
       'POST /v1/scans': { ThrottlingRateLimit: 10, ThrottlingBurstLimit: 20 },
+      'POST /v1/contact': { ThrottlingRateLimit: 1, ThrottlingBurstLimit: 5 },
     };
 
     const jwtAuthorizer = new apigatewayv2Authorizers.HttpJwtAuthorizer(
@@ -257,13 +282,15 @@ export class CloudScribbleStack extends cdk.Stack {
 
     // --- Public routes ---
     addRoute(apigatewayv2.HttpMethod.GET, '/v1/health', healthGet, { noAuth: true });
+    const contactRoutes = addRoute(apigatewayv2.HttpMethod.POST, '/v1/contact', contactSubmit, { noAuth: true });
 
     // --- Authenticated routes ---
     addRoute(apigatewayv2.HttpMethod.POST, '/v1/uploads', uploadsCreate);
     const scansRoutes = addRoute(apigatewayv2.HttpMethod.POST, '/v1/scans', scansCreate);
+    addRoute(apigatewayv2.HttpMethod.DELETE, '/v1/users/me', usersDeleteMe);
 
     // Stage RouteSettings reference routes by key — the stage must update after those routes exist.
-    httpApi.defaultStage!.node.addDependency(...scansRoutes);
+    httpApi.defaultStage!.node.addDependency(...scansRoutes, ...contactRoutes);
 
     // ==================================================================
     // CloudWatch alarms

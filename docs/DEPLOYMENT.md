@@ -26,4 +26,13 @@ The staging/prod stacks will fail to deploy until step 4 completes (Cognito send
 
 Source of truth: GitHub environment secrets → synced by the deploy workflow's `jq` block into `cloudscribble/<stage>/secrets`. New secret = GitHub (both environments) + both workflow `jq` blocks + reading code.
 
-_Secret list, workflows, and Amplify setup to be filled in during Build Order step 4._
+| Secret | Where | Read by | Notes |
+| --- | --- | --- | --- |
+| `AWS_DEPLOY_ROLE_ARN` | GitHub env secret (both) | workflows | Not in the blob. |
+| `TURNSTILE_SECRET_KEY` | GitHub env secret (both) → blob | `contact/submit.ts` | Optional; missing → contact form returns 503 (never accepts unverified). Separate Turnstile widget per environment. |
+
+Bedrock uses IAM — no AI key.
+
+## Website (Amplify)
+
+Created once by hand in the Amplify console (IaC exception 2). Build spec, env vars, and the SPA rewrite rule are documented at the top of `amplify.yml`.
