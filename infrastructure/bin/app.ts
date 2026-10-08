@@ -25,6 +25,7 @@ new AccountStack(app, 'CloudScribble-account', {
   env,
   description: 'CloudScribble — account bootstrap (GitHub OIDC deploy role, GuardDuty, SES domain identity)',
   githubRepo: 'blackburn635/cloudscribble',
+  githubOidcRepo: 'blackburn635@215784882/cloudscribble@1406374307',
   domainName: BRAND.domain,
   alertEmail: BRAND.supportEmail,
 });

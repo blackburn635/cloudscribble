@@ -24,6 +24,11 @@ import { Construct } from 'constructs';
 export interface AccountStackProps extends cdk.StackProps {
   /** owner/repo */
   githubRepo: string;
+  /**
+   * Repo as it appears in GitHub's OIDC `sub` claim, which uses immutable IDs:
+   * `owner@<ownerId>/repo@<repoId>`. Immune to repo renames and name reuse.
+   */
+  githubOidcRepo: string;
   domainName: string;
   alertEmail: string;
 }
@@ -32,7 +37,7 @@ export class AccountStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AccountStackProps) {
     super(scope, id, props);
 
-    const { githubRepo, domainName, alertEmail } = props;
+    const { githubRepo, githubOidcRepo, domainName, alertEmail } = props;
 
     // ==================================================================
     // GitHub Actions OIDC deploy role
@@ -51,8 +56,8 @@ export class AccountStack extends cdk.Stack {
         },
         StringLike: {
           'token.actions.githubusercontent.com:sub': [
-            `repo:${githubRepo}:environment:staging`,
-            `repo:${githubRepo}:environment:production`,
+            `repo:${githubOidcRepo}:environment:staging`,
+            `repo:${githubOidcRepo}:environment:production`,
           ],
         },
       }),

@@ -68,7 +68,8 @@ ORDER#<orderId>     CODE                   claimed code, claimedAt
 
 ## Guardrails (carry-over lessons)
 - IaC only. No console-created app resources. No `cdk deploy` from a laptop or AI session — deploy by commit via GitHub Actions (OIDC role).
-  - Sole exception: the account bootstrap stack (GitHub OIDC provider + deploy role, GuardDuty) is deployed once by the owner from a laptop. Never by an AI session.
+  - Exception 1: the account bootstrap stack (GitHub OIDC provider + deploy role, GuardDuty) is deployed once by the owner from a laptop. Never by an AI session.
+  - Exception 2: the website's Amplify Hosting app is created by hand in the console (same as TableTryb): GitHub connected via the Amplify GitHub App, branches `develop` (staging) + `main` (prod), per-branch env vars from stack outputs. Amplify builds on every push. Its custom-domain records may be created by Amplify in the hosted zone; never define the same record names in CDK.
 - Never use CloudFormation exports; pass values via stack props. Never manually delete CDK-managed resources.
 - New secret = add in **three places**: GitHub environments (both), both workflow `jq` blocks, reading code. Console-added keys are wiped on deploy.
 - Diff staging vs prod workflows whenever one changes.
