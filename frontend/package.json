@@ -2,12 +2,31 @@
   "name": "@cloudscribble/frontend",
   "version": "0.1.0",
   "private": true,
-  "description": "Placeholder — the Vite website is scaffolded in a later step.",
+  "type": "module",
   "scripts": {
-    "build": "echo \"frontend not scaffolded yet\"",
-    "dev": "echo \"frontend not scaffolded yet\"",
-    "typecheck": "echo \"frontend not scaffolded yet\"",
-    "lint": "echo \"frontend not scaffolded yet\"",
-    "test": "echo \"frontend not scaffolded yet\""
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"No lint config\" && exit 0",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "dependencies": {
+    "@cloudscribble/shared": "*",
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/quicksand": "^5.3.0",
+    "amazon-cognito-identity-js": "^6.3.20",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router": "^7.18.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.4"
   }
 }

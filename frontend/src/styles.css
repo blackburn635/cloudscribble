@@ -1,0 +1,64 @@
+@import 'tailwindcss';
+
+/*
+ * Brand tokens. Values are set at runtime from BRAND (packages/shared) in main.tsx,
+ * so web and mobile share one palette. Fallbacks keep the first paint on-brand.
+ */
+@theme inline {
+  --color-navy: var(--brand-navy, #283593);
+  --color-navy-dark: var(--brand-navyDark, #2a3580);
+  --color-brand-blue: var(--brand-brandBlue, #03A9F4);
+  --color-light-blue: var(--brand-lightBlue, #78CBF9);
+  --color-purple: var(--brand-lightPurple, #6774c8);
+  --color-purple-dark: var(--brand-brandAccent2, #5865bf);
+  --color-mauve: var(--brand-mauve, #B995A9);
+  --color-mauve-light: var(--brand-mauveLight, #C5A7B8);
+  --color-rose: var(--brand-dustyRose, #E8B4BC);
+  --color-sage: var(--brand-sage, #9CAF88);
+  --color-lavender: var(--brand-lavender, #E6E6FA);
+  --color-cream: var(--brand-cream, #FDF8F0);
+  --color-warm-gray: var(--brand-warmGray, #4A4B4F);
+
+  --font-heading: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-body: 'Quicksand', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* Defaults live in layers so per-element utility classes (e.g. text-white on a hero h1) win. */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream font-body text-warm-gray antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-heading text-navy;
+  }
+}
+
+/* Long-form legal text */
+@layer components {
+  .prose-legal h2 {
+    @apply mt-10 mb-3 text-2xl font-semibold;
+  }
+  .prose-legal h3 {
+    @apply mt-6 mb-2 font-body text-lg font-semibold text-navy;
+  }
+  .prose-legal p,
+  .prose-legal li {
+    @apply leading-relaxed;
+  }
+  .prose-legal p {
+    @apply mb-4;
+  }
+  .prose-legal ul {
+    @apply mb-4 list-disc space-y-1 pl-6;
+  }
+  .prose-legal a {
+    @apply text-purple underline;
+  }
+}
