@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isValidDate, normalizeTime, parseScanResult } from '../functions/scans/validate';
+import { datesConsistent, isValidDate, normalizeTime, parseScanResult, stripTimeFromTitle } from '../functions/scans/validate';
 
 describe('isValidDate', () => {
   it('accepts real calendar dates only', () => {
@@ -56,7 +56,13 @@ describe('parseScanResult', () => {
 
   it('extracts JSON wrapped in prose and defaults readable to true', () => {
     const r = parseScanResult('Here you go:\n{"confidence":0.5,"events":[]}\nThanks');
-    expect(r).toEqual({ readable: true, confidence: 0.5, events: [] });
+    expect(r).toEqual({ readable: true, confidence: 0.5, events: [], pageDates: null });
+  });
+
+  it('keeps a valid pageDates range and drops an inverted one', () => {
+    expect(parseScanResult('{"events":[],"pageDates":{"start":"2025-01-06","end":"2025-01-12"}}').pageDates)
+      .toEqual({ start: '2025-01-06', end: '2025-01-12' });
+    expect(parseScanResult('{"events":[],"pageDates":{"start":"2025-01-12","end":"2025-01-06"}}').pageDates).toBeNull();
   });
 
   it('honours readable=false', () => {
@@ -65,5 +71,35 @@ describe('parseScanResult', () => {
 
   it('throws when there is no JSON', () => {
     expect(() => parseScanResult('I cannot help with that.')).toThrow();
+  });
+});
+
+describe('stripTimeFromTitle', () => {
+  it('removes times the model left in the title', () => {
+    expect(stripTimeFromTitle('Soccer - 7:30', '19:30')).toBe('Soccer');
+    expect(stripTimeFromTitle('Golf - 5:30-6:00', '17:30')).toBe('Golf');
+    expect(stripTimeFromTitle('9:30am Dentist', '09:30')).toBe('Dentist');
+    expect(stripTimeFromTitle('Book club @ 5:00–7:30pm', '17:00')).toBe('Book club');
+    expect(stripTimeFromTitle('Swim lessons 2', '14:00')).toBe('Swim lessons');
+  });
+  it('leaves titles alone when unsafe', () => {
+    expect(stripTimeFromTitle('Ward 5', '09:00')).toBe('Ward 5');
+    expect(stripTimeFromTitle('Room 101', '10:00')).toBe('Room 101');
+    expect(stripTimeFromTitle('Soccer - 7:30', null)).toBe('Soccer - 7:30');
+    expect(stripTimeFromTitle('4:15', '16:15')).toBe('4:15');
+  });
+});
+
+describe('datesConsistent', () => {
+  const ev = (date: string) => ({ title: 'x', date, start: null, end: null, allDay: true, note: null, confidence: 1 });
+  const page = { start: '2025-01-06', end: '2025-01-12' };
+  it('passes when events are inside the printed range or no range is printed', () => {
+    expect(datesConsistent({ readable: true, confidence: 1, pageDates: page, events: [ev('2025-01-06'), ev('2025-01-12')] })).toBe(true);
+    expect(datesConsistent({ readable: true, confidence: 1, pageDates: null, events: [ev('2030-01-01')] })).toBe(true);
+  });
+  it('fails on events outside the range or an implausibly long range', () => {
+    expect(datesConsistent({ readable: true, confidence: 1, pageDates: page, events: [ev('2025-01-13')] })).toBe(false);
+    expect(datesConsistent({ readable: true, confidence: 1, pageDates: { start: '2025-01-01', end: '2025-03-31' }, events: [] })).toBe(true);
+    expect(datesConsistent({ readable: true, confidence: 1, pageDates: { start: '2025-01-01', end: '2025-03-31' }, events: [ev('2025-02-01')] })).toBe(false);
   });
 });

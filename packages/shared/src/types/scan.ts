@@ -55,6 +55,8 @@ export interface ScanResult {
   events: ScanEvent[];
   /** Overall confidence 0–1 */
   confidence: number;
+  /** First/last dates the page covers per its printed headers; null when none are printed */
+  pageDates: { start: string; end: string } | null;
 }
 
 export interface ScanResponse extends ScanResult {

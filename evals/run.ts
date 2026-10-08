@@ -12,7 +12,7 @@
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runModel } from '../backend/functions/scans/ai';
+import { runModel, scanPage, type ModelRun, type ScanModelConfig } from '../backend/functions/scans/ai';
 import type { ScanEvent } from '@cloudscribble/shared';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -52,7 +52,15 @@ const arg = (name: string) => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 ? args[i + 1] : undefined;
 };
-const models = arg('models')?.split(',') ?? DEFAULT_MODELS;
+/** --tiered: run production tiering (scanPage) instead of single models. Mirrors the Lambda env. */
+const TIERED: ScanModelConfig = {
+  primary: 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+  fallback: 'us.anthropic.claude-sonnet-4-6',
+  fallbackBelow: 0.9,
+  fallbackEffort: 'low',
+};
+const tiered = args.includes('--tiered');
+const models = tiered ? ['tiered'] : (arg('models')?.split(',') ?? DEFAULT_MODELS);
 const set = arg('set') ?? 'all';
 const limit = Number(arg('limit') ?? Infinity);
 
@@ -139,34 +147,56 @@ const results: Record<string, unknown>[] = [];
 console.log(`Eval: ${pages.length} pages × ${models.length} models\n`);
 
 for (const model of models) {
-  const totals = { truth: 0, found: 0, timeRight: 0, extra: 0, struckLeaks: 0, todoLeaks: 0, inTok: 0, outTok: 0, ms: 0, errors: 0, conf: 0 };
+  const totals = { truth: 0, found: 0, timeRight: 0, extra: 0, struckLeaks: 0, todoLeaks: 0, inTok: 0, outTok: 0, ms: 0, errors: 0, conf: 0, cost: 0, priced: true, fallbacks: 0 };
   for (const page of pages) {
     const image = { data: readFileSync(join(here, page.dir, page.file)), contentType: contentType(page.file) };
     const started = Date.now();
     try {
-      const run = await runModel(model, image, page.scanDate ?? today, { timeoutMs: 60_000 });
+      let run: ModelRun;
+      let allRuns: ModelRun[];
+      if (tiered) {
+        const scan = await scanPage(image, page.scanDate ?? today, TIERED, 60_000);
+        run = scan.final;
+        allRuns = scan.runs;
+        if (scan.runs.length > 1) totals.fallbacks++;
+      } else {
+        run = await runModel(model, image, page.scanDate ?? today, { timeoutMs: 60_000 });
+        allRuns = [run];
+      }
+      for (const r of allRuns) {
+        const p = PRICES[r.model] ?? null;
+        const inTok = r.usage.input_tokens + (r.usage.cache_read_input_tokens ?? 0) + (r.usage.cache_creation_input_tokens ?? 0);
+        if (p) totals.cost += (inTok * p.in + r.usage.output_tokens * p.out) / 1e6;
+        else totals.priced = false;
+      }
       const ms = Date.now() - started;
       const s = scorePage(page, run.result.events);
       totals.truth += s.truth; totals.found += s.found; totals.timeRight += s.timeRight; totals.extra += s.extra;
       totals.struckLeaks += s.struckLeaks; totals.todoLeaks += s.todoLeaks; totals.ms += ms; totals.conf += run.result.confidence;
-      totals.inTok += run.usage.input_tokens + (run.usage.cache_read_input_tokens ?? 0) + (run.usage.cache_creation_input_tokens ?? 0);
-      totals.outTok += run.usage.output_tokens;
-      results.push({ model, page: `${page.dir}/${page.file}`, ms, confidence: run.result.confidence, score: s, events: run.result.events });
-      process.stdout.write(`  ${page.dir}/${page.file.padEnd(28)} ${s.found}/${s.truth} found, ${s.timeRight} time-ok, ${s.extra} extra, conf ${run.result.confidence.toFixed(2)}, ${ms}ms\n`);
+      for (const r of allRuns) {
+        totals.inTok += r.usage.input_tokens + (r.usage.cache_read_input_tokens ?? 0) + (r.usage.cache_creation_input_tokens ?? 0);
+        totals.outTok += r.usage.output_tokens;
+      }
+      results.push({
+        model, page: `${page.dir}/${page.file}`, ms, finalModel: run.model, confidence: run.result.confidence,
+        pageDates: run.result.pageDates, score: s, events: run.result.events,
+        runs: allRuns.map((r) => ({ model: r.model, confidence: r.result.confidence, pageDates: r.result.pageDates, events: r.result.events.length })),
+      });
+      const via = tiered ? (allRuns.length > 1 ? ' [fallback]' : ' [primary]') : '';
+      process.stdout.write(`  ${page.dir}/${page.file.padEnd(28)} ${s.found}/${s.truth} found, ${s.timeRight} time-ok, ${s.extra} extra, conf ${run.result.confidence.toFixed(2)}, ${ms}ms${via}\n`);
     } catch (err) {
       totals.errors++;
       results.push({ model, page: `${page.dir}/${page.file}`, error: String(err) });
       process.stdout.write(`  ${page.dir}/${page.file.padEnd(28)} ERROR ${(err as Error).message}\n`);
     }
   }
-  const price = PRICES[model] ?? null;
-  const cost = price ? (totals.inTok * price.in + totals.outTok * price.out) / 1e6 : null;
+  const cost = totals.priced ? totals.cost : null;
   const ok = pages.length - totals.errors;
   console.log(`\n${model}
   recall      ${(100 * totals.found / Math.max(1, totals.truth)).toFixed(1)}%  (${totals.found}/${totals.truth} events found)
   exact time  ${(100 * totals.timeRight / Math.max(1, totals.truth)).toFixed(1)}%  of all events
   extras      ${totals.extra}  (crossed-out leaks ${totals.struckLeaks}, to-do leaks ${totals.todoLeaks})
-  errors      ${totals.errors}
+  errors      ${totals.errors}${tiered ? `\n  fallbacks   ${totals.fallbacks}/${ok} pages (${(100 * totals.fallbacks / Math.max(1, ok)).toFixed(0)}%)` : ''}
   avg latency ${ok ? Math.round(totals.ms / ok) : '-'} ms, avg confidence ${ok ? (totals.conf / ok).toFixed(2) : '-'}
   tokens      ${totals.inTok} in / ${totals.outTok} out
   cost        ${cost === null ? 'price unknown' : `$${cost.toFixed(4)} total, $${(cost / Math.max(1, ok)).toFixed(5)}/scan`}\n`);

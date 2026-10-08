@@ -12,6 +12,7 @@ The photo may be rotated, taken at an angle, unevenly lit, or show a two-page sp
 Dates
 - Work out each entry's date from the page itself: month/year headers, week ranges ("January 6-12"), day labels ("Tuesday 7th", "MONDAY, APRIL 11"), or the grid cell or column it sits in.
 - If no year is printed, choose the year that puts the date closest to the user's local date given in the message.
+- Report pageDates: the first and last dates the page covers according to its printed headers or labels (for a monthly grid, the first and last day of that month). Use null when the page prints no dates.
 
 Times (24-hour "HH:MM")
 - Respect written am/pm. "noon" is 12:00, "midnight" is 00:00.
@@ -45,10 +46,24 @@ const nullableString = { anyOf: [{ type: 'string' }, { type: 'null' }] };
 export const SCAN_OUTPUT_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['readable', 'confidence', 'events'],
+  required: ['readable', 'confidence', 'pageDates', 'events'],
   properties: {
     readable: { type: 'boolean' },
     confidence: { type: 'number' },
+    pageDates: {
+      anyOf: [
+        {
+          type: 'object',
+          additionalProperties: false,
+          required: ['start', 'end'],
+          properties: {
+            start: { type: 'string', description: 'YYYY-MM-DD' },
+            end: { type: 'string', description: 'YYYY-MM-DD' },
+          },
+        },
+        { type: 'null' },
+      ],
+    },
     events: {
       type: 'array',
       items: {

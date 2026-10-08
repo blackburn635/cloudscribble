@@ -11,7 +11,7 @@ import AnthropicBedrock from '@anthropic-ai/bedrock-sdk';
 import type { Message, MessageCreateParamsNonStreaming } from '@anthropic-ai/sdk/resources/messages';
 import type { ScanResult, ScanUploadContentType } from '@cloudscribble/shared';
 import { SCAN_OUTPUT_SCHEMA, SCAN_SYSTEM_PROMPT, scanUserText } from './prompt';
-import { parseScanResult } from './validate';
+import { datesConsistent, parseScanResult } from './validate';
 
 export interface ScanModelConfig {
   primary: string;
@@ -27,7 +27,7 @@ export function modelConfigFromEnv(env = process.env): ScanModelConfig {
   return {
     primary: env.SCAN_MODEL_PRIMARY,
     fallback: env.SCAN_MODEL_FALLBACK || undefined,
-    fallbackBelow: Number(env.SCAN_FALLBACK_BELOW ?? '0.7'),
+    fallbackBelow: Number(env.SCAN_FALLBACK_BELOW ?? '0.9'),
     fallbackEffort: (env.SCAN_FALLBACK_EFFORT as ScanModelConfig['fallbackEffort']) || undefined,
   };
 }
@@ -111,7 +111,10 @@ export async function scanPage(
   const primary = await runModel(cfg.primary, image, localDate, { timeoutMs: budgetMs });
   runs.push(primary);
 
-  const needsFallback = !primary.result.readable || primary.result.confidence < cfg.fallbackBelow;
+  // Self-reported confidence alone misses whole-page date misreads (eval 2026-10-08), so also
+  // fall back when events land outside the page's own printed date range.
+  const needsFallback =
+    !primary.result.readable || primary.result.confidence < cfg.fallbackBelow || !datesConsistent(primary.result);
   const timeLeft = deadline - Date.now();
   if (!needsFallback || !cfg.fallback || cfg.fallback === cfg.primary || timeLeft < MIN_FALLBACK_MS) {
     return { final: primary, runs };
