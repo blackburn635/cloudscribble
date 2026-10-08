@@ -20,6 +20,11 @@ mobile/ios/
 mobile/android/
 mobile/.expo/
 
+# Evals — real photos are personal; synthetic output is regenerated
+evals/real/
+evals/synthetic/
+evals/results/
+
 # IDE
 .vscode/
 .idea/
