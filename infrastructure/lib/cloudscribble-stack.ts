@@ -17,6 +17,8 @@ export interface CloudScribbleStackProps extends cdk.StackProps {
   stage: 'staging' | 'prod';
   /** Website domain for this stage (CORS origin) */
   siteDomain: string;
+  /** Additional browser origins allowed by CORS (e.g. the Amplify default domain, localhost). */
+  extraOrigins?: string[];
   /** SES-verified domain (created by CloudScribble-account) */
   emailDomain: string;
 }
@@ -28,7 +30,9 @@ export class CloudScribbleStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: CloudScribbleStackProps) {
     super(scope, id, props);
 
-    const { stage, siteDomain, emailDomain } = props;
+    const { stage, siteDomain, emailDomain, extraOrigins = [] } = props;
+    // One list for API Gateway CORS and the Lambdas' response headers, so they can't drift.
+    const allowedOrigins = [`https://${siteDomain}`, ...extraOrigins];
     const isProd = stage === 'prod';
     const retainInProd = isProd ? cdk.RemovalPolicy.RETAIN : cdk.RemovalPolicy.DESTROY;
 
@@ -133,7 +137,7 @@ export class CloudScribbleStack extends cdk.Stack {
       STAGE: stage,
       SCANS_BUCKET: scansBucket.bucketName,
       USER_POOL_ID: userPool.userPoolId,
-      ALLOWED_ORIGIN: `https://${siteDomain}`,
+      ALLOWED_ORIGINS: allowedOrigins.join(','),
       SECRETS_NAME: `cloudscribble/${stage}/secrets`,
     };
 
@@ -228,9 +232,7 @@ export class CloudScribbleStack extends cdk.Stack {
       description: `CloudScribble API — ${stage}`,
       corsPreflight: {
         // Native mobile sends no Origin; only the website needs CORS.
-        allowOrigins: isProd
-          ? [`https://${siteDomain}`, `https://www.${siteDomain}`]
-          : [`https://${siteDomain}`, 'http://localhost:5173'],
+        allowOrigins: allowedOrigins,
         allowMethods: [
           apigatewayv2.CorsHttpMethod.GET,
           apigatewayv2.CorsHttpMethod.POST,

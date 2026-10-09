@@ -44,7 +44,8 @@ export interface ScribbleFunctionSharedEnv {
   STAGE: string;
   SCANS_BUCKET: string;
   USER_POOL_ID: string;
-  ALLOWED_ORIGIN: string;
+  /** Comma-separated browser origins allowed by CORS; the first is the primary site. */
+  ALLOWED_ORIGINS: string;
   SECRETS_NAME: string;
 }
 

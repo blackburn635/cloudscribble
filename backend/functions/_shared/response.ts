@@ -13,11 +13,11 @@ import { AppError } from './errors';
  * Access-Control-Allow-Origin accepts a single origin, so reflect the request
  * origin when it is on the allowlist. Native mobile sends no Origin header.
  */
-const PRIMARY_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://cloudscribble.com';
-
-const ALLOWED_ORIGINS: string[] = process.env.STAGE === 'prod'
-  ? [PRIMARY_ORIGIN, PRIMARY_ORIGIN.replace('https://', 'https://www.')]
-  : [PRIMARY_ORIGIN, 'http://localhost:5173'];
+const ALLOWED_ORIGINS: string[] = (process.env.ALLOWED_ORIGINS || 'https://cloudscribble.com')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+const PRIMARY_ORIGIN = ALLOWED_ORIGINS[0];
 
 export function getCorsHeaders(event?: APIGatewayProxyEventV2): Record<string, string> {
   const requestOrigin = event?.headers?.origin || '';

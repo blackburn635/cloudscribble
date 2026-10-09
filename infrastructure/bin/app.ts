@@ -35,6 +35,8 @@ new CloudScribbleStack(app, 'CloudScribble-staging', {
   description: 'CloudScribble — staging',
   stage: 'staging',
   siteDomain: `staging.${BRAND.domain}`,
+  // Amplify default domain for the develop branch (app d2orlejbd6zz8l) + local Vite dev server.
+  extraOrigins: ['https://develop.d2orlejbd6zz8l.amplifyapp.com', 'http://localhost:5173'],
   emailDomain: BRAND.domain,
 });
 
@@ -43,6 +45,7 @@ new CloudScribbleStack(app, 'CloudScribble-prod', {
   description: 'CloudScribble — production',
   stage: 'prod',
   siteDomain: BRAND.domain,
+  extraOrigins: [`https://www.${BRAND.domain}`],
   emailDomain: BRAND.domain,
 });
 
