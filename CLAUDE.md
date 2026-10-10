@@ -81,6 +81,7 @@ ORDER#<orderId>     CODE                   claimed code, claimedAt
 - Never commit `tsconfig.tsbuildinfo`. Shared package is dual CJS+ESM with `exports` map.
 - HTTP API wraps array claims in brackets — strip `[ ]` before parsing groups. WAF can't attach to HTTP API; use route throttling.
 - Mobile: run `npx expo install --check` after any dependency change; pin NativeWind `4.2.1` / css-interop `0.2.1`; don't set `disableHierarchicalLookup`; `jsxImportSource` in Babel only; pass `Storage` to every `new CognitoUser`; keep `crypto.getRandomValues` shim; never list `react-native-purchases` in plugins; `mobile/` outside root workspaces.
+- Mobile uses Expo SDK 55 (same as TableTryb; NativeWind pins are proven there) and React Navigation 7 (not Expo Router). `@cloudscribble/shared` resolves to its **TS source** via `metro.config.js` `resolveRequest` + tsconfig `paths` (no dist needed on EAS). `app.config.ts` can't import shared TS — copy the few values it needs.
 - Apple: accept updated agreements if builds 403; IAP products need a review screenshot to leave "Missing Metadata".
 - macOS: `sed -i ''`.
 

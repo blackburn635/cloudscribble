@@ -1,0 +1,50 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": { "simulator": false, "resourceClass": "m-medium" },
+      "env": {
+        "EXPO_PUBLIC_STAGE": "staging",
+        "EXPO_PUBLIC_API_URL": "https://s5zypqnmze.execute-api.us-east-2.amazonaws.com",
+        "EXPO_PUBLIC_USER_POOL_ID": "us-east-2_YKMiQ8ZCl",
+        "EXPO_PUBLIC_USER_POOL_CLIENT_ID": "31mk05np0h438qg0rf3pc6r3qo"
+      }
+    },
+    "development-simulator": {
+      "extends": "development",
+      "ios": { "simulator": true }
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": { "resourceClass": "m-medium" },
+      "env": {
+        "EXPO_PUBLIC_STAGE": "staging",
+        "EXPO_PUBLIC_API_URL": "https://s5zypqnmze.execute-api.us-east-2.amazonaws.com",
+        "EXPO_PUBLIC_USER_POOL_ID": "us-east-2_YKMiQ8ZCl",
+        "EXPO_PUBLIC_USER_POOL_CLIENT_ID": "31mk05np0h438qg0rf3pc6r3qo"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "ios": { "resourceClass": "m-medium" },
+      "env": {
+        "EXPO_PUBLIC_STAGE": "prod",
+        "EXPO_PUBLIC_API_URL": "TODO-prod-ApiUrl",
+        "EXPO_PUBLIC_USER_POOL_ID": "TODO-prod-UserPoolId",
+        "EXPO_PUBLIC_USER_POOL_CLIENT_ID": "TODO-prod-UserPoolClientIdMobile"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleTeamId": "87H23V3FLB"
+      }
+    }
+  }
+}
