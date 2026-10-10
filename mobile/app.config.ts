@@ -39,6 +39,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-splash-screen',
       { image: './assets/splash-icon.png', imageWidth: 200, resizeMode: 'contain', backgroundColor: CREAM },
     ],
+    // Before expo-camera so the camera string below wins. iOS uses the system photo picker
+    // (no library permission prompt); the string is still required for review.
+    [
+      'expo-image-picker',
+      {
+        photosPermission: 'CloudScribble lets you choose a photo of a planner page you’ve already taken.',
+        microphonePermission: false,
+      },
+    ],
     [
       'expo-camera',
       {
