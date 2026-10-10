@@ -56,6 +56,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Never list react-native-purchases here — it has no config plugin.
   ],
   extra: {
-    // eas: { projectId } is added by `eas init`.
+    // EAS project @blackburn635/cloudscribble (reused from the archived app: same credentials + build numbers).
+    eas: { projectId: 'ace9d970-b90c-4c88-b8e2-6dab8a49da43' },
   },
 });
