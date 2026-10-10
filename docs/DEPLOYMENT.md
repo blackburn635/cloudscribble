@@ -35,4 +35,21 @@ Bedrock uses IAM — no AI key.
 
 ## Website (Amplify)
 
-Created once by hand in the Amplify console (IaC exception 2). Build spec, env vars, and the SPA rewrite rule are documented at the top of `amplify.yml`.
+Created once by hand in the Amplify console (IaC exception 2). Build spec, env vars, and the SPA rewrite rule are documented at the top of `amplify.yml`; security headers are in `customHttp.yml`.
+
+| | Staging | Production |
+| --- | --- | --- |
+| Amplify app | `cloudscribble` (`d2orlejbd6zz8l`), new account | same app |
+| Branch | `develop` | `main` (add at launch) |
+| URL | https://staging.cloudscribble.com (custom domain, root excluded) + https://develop.d2orlejbd6zz8l.amplifyapp.com | https://cloudscribble.com + www (at launch) |
+| Env vars | `VITE_API_URL`, `VITE_USER_POOL_ID`, `VITE_USER_POOL_CLIENT_ID`, `VITE_TURNSTILE_SITE_KEY` | same keys, prod values + `VITE_GA_MEASUREMENT_ID` |
+| Turnstile widget | `cloudscribble-staging` | `cloudscribble-prod` |
+
+Never put secrets in Amplify environment variables — only public `VITE_*` values. Secret keys go in GitHub environment secrets.
+
+Test user (staging, admin group): `scan-test@cloudscribble.com`, password in the owner's password manager.
+
+### Launch cutover (prod website)
+1. Detach `cloudscribble.com` + `www` from the legacy `cloudscribble-pre-launch-website` app (payer account; owner approval).
+2. Remove the TEMPORARY pre-launch + cert-validation records from `account-stack.ts`; owner deploys the account stack.
+3. Connect `main` in Amplify, set prod env vars, add root + `www` custom domains.

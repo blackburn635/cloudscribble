@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-08 → 2026-10-10
+- Scan API: `POST /v1/uploads`, `POST /v1/scans` (Sonnet 4.6 via Bedrock, 100 scans/month), e2e-tested on staging.
+- Evals: synthetic + real planner pages; Haiku 4.5 rejected (digit misreads at high confidence).
+- Website rebuilt (Vite/React/Tailwind) on Amplify: Home, How It Works, FAQ, Support (Turnstile + SES), Privacy, Terms, Delete Account. Live at staging.cloudscribble.com.
+- `DELETE /v1/users/me`, `POST /v1/contact`; CORS origins from one list; headers via `customHttp.yml`.
+- Legacy staging app released `staging.cloudscribble.com` (owner-approved change in payer account).
+
 ## 2026-10-07
 - DNS: Route 53 hosted zone for `cloudscribble.com` added to `CloudScribble-account` (copied from the legacy account's zone). Spacemail records (DKIM repaired into one record), DMARC, SES DKIM + MAIL FROM generated from the identity. TEMPORARY records keep the legacy pre-launch Amplify site, its cert renewal, and old `staging.` working until launch cutover. Dropped: old SES identity records, unused ACM validations, `staging-admin` (admin site retired), dead AAAA.
 - Decisions: app name CloudScribble; no admin site (admin = Cognito group, later); legacy account is the Organization payer — ask before accessing.
