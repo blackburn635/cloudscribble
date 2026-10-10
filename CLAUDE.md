@@ -11,7 +11,7 @@ Reference architecture: `docs/references/tabletryb-blueprint.md` (TableTryb, a w
 ## Product
 - One mobile app (Expo, iOS first, Android later): photograph **any** paper planner page → AI extracts events → events written to the phone's calendar.
 - Owner: CloudScribble LLC. App name: **CloudScribble** — one app that works with any paper planner (copy must never imply CloudScribble planners only); planner buyers get a free year via Apple Offer Code.
-- Monetization (tentative): auto-renewing subscription, ~$1.99/mo and ~$17.99–19.99/yr, target ≥30% margin after store fees (15%). Free trial via Apple introductory offer (length TBD); no server-side trial.
+- Monetization: **Apple-only** auto-renewing subscription (no web checkout). Price TBD: $1.99–2.99/mo, annual TBD — set in App Store Connect (see margin notes: heavy annual users are the thin case). Target ≥30% margin after store fees (15% via Small Business Program). Free trial via Apple introductory offer (7 or 14 days, TBD); no server-side trial. Planner buyers' free year = **Apple Offer Codes only** (planner price should cover ~$2/yr AI cost).
 - CloudScribble planner buyers get **1 year free via Apple Offer Codes** (see Entitlements).
 - Fair-use cap: **100 scans/month** per user (`SCAN_MONTHLY_LIMIT`; keeps a maxed-out user within the 30% margin).
 
@@ -32,7 +32,6 @@ Reference architecture: `docs/references/tabletryb-blueprint.md` (TableTryb, a w
 PK                  SK                     Notes
 USER#<sub>          PROFILE                lazy-created on first API call (no post-confirmation Lambda)
 USER#<sub>          SUBSCRIPTION#IAP       RevenueCat webhook
-USER#<sub>          SUBSCRIPTION#PLANNER   optional grant for website planner purchases (3.1.3(b))
 USER#<sub>          USAGE#<yyyy-mm>        atomic ADD; quota check before every AI call
 POOL                <expiresOn>#<code>     Apple offer-code pool; batchId (one partition, sorted by expiry)
 ORDER#<orderId>     CODE                   claimed code, claimedAt
@@ -59,7 +58,8 @@ ORDER#<orderId>     CODE                   claimed code, claimedAt
 - Typed `AppError` codes for all failures (e.g. `SCAN_UNREADABLE`, `SCAN_QUOTA_EXCEEDED`, `SCAN_AI_ERROR`).
 
 ## Entitlements & billing
-- RevenueCat over App Store (Google Play later). App User ID = Cognito `sub`. Decide the snake_case entitlement ID before any code uses it (cannot be renamed).
+- RevenueCat over App Store (Google Play later). App User ID = Cognito `sub`. Entitlement ID **`cloudscribble_access`** (permanent — never rename). One RevenueCat account shared with TableTryb (separate projects).
+- Bundle ID `com.cloudscribble.app`. EAS under Expo account `@blackburn635`. Sentry added before TestFlight.
 - Webhook derives status from ground-truth fields, timing-safe auth compare, ignores SANDBOX in prod, returns 500 on unexpected errors.
 - **Apple guideline 3.1.1: never unlock features with our own codes/license keys.** Planner free year = **Apple Offer Codes** only.
 - Offer codes: one-time-use, created via App Store Connect API in batches (500–25,000), **expire ≤6 months from creation**, 1M/app/quarter.
@@ -85,9 +85,7 @@ ORDER#<orderId>     CODE                   claimed code, claimedAt
 - macOS: `sed -i ''`.
 
 ## Open decisions
-- Bundle ID (archived app used `com.cloudscribble.app`).
-- Final prices (check competitor US pricing, e.g. Photo2Calendar).
-- Website planner sales: Offer Codes only, or also `SUBSCRIPTION#PLANNER` account grants.
+- Prices ($1.99–2.99/mo, annual) and trial length (7 vs 14 days) — set in App Store Connect before submission.
 - Android timing.
 
 ## Build order
