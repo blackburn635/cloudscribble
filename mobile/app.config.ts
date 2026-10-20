@@ -18,14 +18,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     bundleIdentifier: 'com.cloudscribble.app',
     supportsTablet: false,
-    buildNumber: '1',
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
     package: 'com.cloudscribble.app',
-    versionCode: 1,
     adaptiveIcon: {
       foregroundImage: './assets/android-icon-foreground.png',
       backgroundColor: CREAM,
