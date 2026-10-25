@@ -37,7 +37,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<AppStackParamL
     <SafeAreaView className="flex-1 bg-cream" edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <View className="flex-row items-center justify-between px-5 pt-2">
-        <Image source={require('../../../assets/images/logo.png')} className="h-[52px] w-[150px]" resizeMode="contain" accessibilityLabel="CloudScribble" />
+        <Image source={require('../../../assets/images/logo.png')} className="h-[90px] w-[230px]" resizeMode="contain" accessibilityLabel="CloudScribble" />
         <Pressable onPress={() => { reset(); signOut(); }} hitSlop={10}>
           <Text className="text-sm font-semibold text-purple">Sign Out</Text>
         </Pressable>
