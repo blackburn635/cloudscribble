@@ -188,9 +188,30 @@ export class AccountStack extends cdk.Stack {
     // ==================================================================
     // SES domain identity (shared by both stages) — DKIM + MAIL FROM records created in the zone
     // ==================================================================
+    // Bounce/complaint monitoring: identity-level SNS notifications aren't in CloudFormation, so a
+    // configuration set is made the identity's default (applies to every send, incl. Cognito's)
+    // and routes bounce + complaint events to SNS → email. SES's account-level suppression list
+    // (on by default) stops further sends to those addresses automatically.
+    const emailFeedbackTopic = new sns.Topic(this, 'EmailFeedbackTopic', {
+      topicName: 'cloudscribble-email-feedback',
+      displayName: 'CloudScribble email bounces/complaints',
+    });
+    emailFeedbackTopic.addSubscription(new subscriptions.EmailSubscription(alertEmail));
+    emailFeedbackTopic.grantPublish(new iam.ServicePrincipal('ses.amazonaws.com'));
+
+    const emailConfigSet = new ses.ConfigurationSet(this, 'EmailConfigSet', {
+      configurationSetName: 'cloudscribble-default',
+      suppressionReasons: ses.SuppressionReasons.BOUNCES_AND_COMPLAINTS,
+    });
+    emailConfigSet.addEventDestination('BounceComplaintToSns', {
+      destination: ses.EventDestination.snsTopic(emailFeedbackTopic),
+      events: [ses.EmailSendingEvent.BOUNCE, ses.EmailSendingEvent.COMPLAINT],
+    });
+
     new ses.EmailIdentity(this, 'DomainIdentity', {
       identity: ses.Identity.publicHostedZone(zone),
       mailFromDomain: `mail.${domainName}`,
+      configurationSet: emailConfigSet,
     });
 
     new cdk.CfnOutput(this, 'NameServers', {
