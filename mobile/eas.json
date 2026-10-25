@@ -7,31 +7,42 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "ios": { "simulator": false, "resourceClass": "m-medium" },
+      "ios": {
+        "simulator": false,
+        "resourceClass": "m-medium"
+      },
       "env": {
         "EXPO_PUBLIC_STAGE": "staging",
         "EXPO_PUBLIC_API_URL": "https://s5zypqnmze.execute-api.us-east-2.amazonaws.com",
         "EXPO_PUBLIC_USER_POOL_ID": "us-east-2_YKMiQ8ZCl",
         "EXPO_PUBLIC_USER_POOL_CLIENT_ID": "31mk05np0h438qg0rf3pc6r3qo"
-      }
+      },
+      "autoIncrement": true
     },
     "development-simulator": {
       "extends": "development",
-      "ios": { "simulator": true }
+      "ios": {
+        "simulator": true
+      }
     },
     "preview": {
       "distribution": "internal",
-      "ios": { "resourceClass": "m-medium" },
+      "ios": {
+        "resourceClass": "m-medium"
+      },
       "env": {
         "EXPO_PUBLIC_STAGE": "staging",
         "EXPO_PUBLIC_API_URL": "https://s5zypqnmze.execute-api.us-east-2.amazonaws.com",
         "EXPO_PUBLIC_USER_POOL_ID": "us-east-2_YKMiQ8ZCl",
         "EXPO_PUBLIC_USER_POOL_CLIENT_ID": "31mk05np0h438qg0rf3pc6r3qo"
-      }
+      },
+      "autoIncrement": true
     },
     "production": {
       "autoIncrement": true,
-      "ios": { "resourceClass": "m-medium" },
+      "ios": {
+        "resourceClass": "m-medium"
+      },
       "env": {
         "EXPO_PUBLIC_STAGE": "prod",
         "EXPO_PUBLIC_API_URL": "TODO-prod-ApiUrl",
