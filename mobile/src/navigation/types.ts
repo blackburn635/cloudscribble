@@ -8,4 +8,7 @@ export type AuthStackParamList = {
 
 export type AppStackParamList = {
   Home: undefined;
+  Camera: undefined;
+  Scanning: { width?: number; height?: number } | undefined;
+  Review: undefined;
 };

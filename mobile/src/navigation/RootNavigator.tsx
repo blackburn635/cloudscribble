@@ -12,6 +12,9 @@ import { SignUpScreen } from '../screens/auth/SignUpScreen';
 import { VerifyEmailScreen } from '../screens/auth/VerifyEmailScreen';
 import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
 import { HomeScreen } from '../screens/app/HomeScreen';
+import { CameraScreen } from '../screens/scan/CameraScreen';
+import { ScanningScreen } from '../screens/scan/ScanningScreen';
+import { ReviewScreen } from '../screens/scan/ReviewScreen';
 
 const Auth = createNativeStackNavigator<AuthStackParamList>();
 const App = createNativeStackNavigator<AppStackParamList>();
@@ -32,6 +35,9 @@ function AppStack() {
   return (
     <App.Navigator screenOptions={{ headerShown: false }}>
       <App.Screen name="Home" component={HomeScreen} />
+      <App.Screen name="Camera" component={CameraScreen} options={{ animation: 'fade' }} />
+      <App.Screen name="Scanning" component={ScanningScreen} options={{ gestureEnabled: false }} />
+      <App.Screen name="Review" component={ReviewScreen} options={{ gestureEnabled: false }} />
     </App.Navigator>
   );
 }

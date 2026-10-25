@@ -1,44 +1,69 @@
 /**
- * Home — placeholder until the scan loop lands (step 6.2). Shows the signed-in user and
- * proves an authenticated API round-trip via GET /v1/health.
+ * Home — the archived home view: logo header, greeting, how-it-works list, Start Scanning,
+ * plus Choose from Photos and the scans-left count (from the last scan this session).
  */
-import { useEffect, useState } from 'react';
-import { Image, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import * as ImagePicker from 'expo-image-picker';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { SCAN_MONTHLY_LIMIT } from '@cloudscribble/shared';
+import type { AppStackParamList } from '../../navigation/types';
 import { useAuth } from '../../context/AuthContext';
-import { useApi } from '../../lib/api';
+import { useScanSession } from '../../scan/ScanSession';
 import { env } from '../../config/env';
 import { Button } from '../../components/ui/Button';
 
-export function HomeScreen() {
-  const { user, signOut } = useAuth();
-  const api = useApi();
-  const [apiStatus, setApiStatus] = useState('checking…');
+const STEPS = [
+  { icon: '📸', text: 'Photograph a planner page' },
+  { icon: '✏️', text: 'Check and fix the events' },
+  { icon: '📅', text: 'Save them to your calendar' },
+];
 
-  useEffect(() => {
-    api.get<{ status: string; stage: string }>('/v1/health')
-      .then((r) => setApiStatus(`${r.status} (${r.stage})`))
-      .catch((e) => setApiStatus(`error: ${e.message}`));
-  }, [api]);
+export function HomeScreen({ navigation }: NativeStackScreenProps<AppStackParamList, 'Home'>) {
+  const { user, signOut } = useAuth();
+  const { startScan, remainingThisMonth, reset } = useScanSession();
+
+  async function pickPhoto() {
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
+    if (res.canceled || !res.assets?.[0]) return;
+    const a = res.assets[0];
+    startScan(a.uri);
+    navigation.navigate('Scanning', { width: a.width, height: a.height });
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-cream" edges={['top', 'bottom']}>
       <StatusBar style="dark" />
-      <ScrollView contentContainerClassName="grow px-5 pb-8 pt-6">
-        <Image source={require('../../../assets/images/logo.png')} className="mb-6 h-[70px] w-[180px] self-center" resizeMode="contain" />
-        <Text className="mb-1 text-[28px] font-bold text-navy">Hi{user?.firstName ? `, ${user.firstName}` : ''}!</Text>
-        <Text className="mb-8 text-base text-warm-gray">{user?.email}{user?.isAdmin ? ' · admin' : ''}</Text>
+      <View className="flex-row items-center justify-between px-5 pt-2">
+        <Image source={require('../../../assets/images/logo.png')} className="h-[52px] w-[150px]" resizeMode="contain" accessibilityLabel="CloudScribble" />
+        <Pressable onPress={() => { reset(); signOut(); }} hitSlop={10}>
+          <Text className="text-sm font-semibold text-purple">Sign Out</Text>
+        </Pressable>
+      </View>
 
-        <View className="mb-8 rounded-xl border-l-4 border-purple bg-white p-4">
-          <Text className="text-base font-semibold text-navy">Scanning is coming next</Text>
-          <Text className="mt-1 text-sm text-warm-gray">Sign-in works. The camera and calendar screens are the next step.</Text>
+      <ScrollView contentContainerClassName="grow px-5 pb-6 pt-6">
+        <Text className="mb-1 text-[28px] font-bold text-navy">Hi{user?.firstName ? `, ${user.firstName}` : ''}!</Text>
+        <Text className="mb-8 text-base text-warm-gray">Ready to sync your planner?</Text>
+
+        {STEPS.map((s) => (
+          <View key={s.text} className="mb-3 flex-row items-center rounded-xl border-l-4 border-purple bg-white p-4">
+            <Text className="mr-4 text-2xl">{s.icon}</Text>
+            <Text className="text-base font-medium text-navy">{s.text}</Text>
+          </View>
+        ))}
+
+        <View className="mt-6 gap-3">
+          <Button title="Start Scanning" onPress={() => navigation.navigate('Camera')} />
+          <Button title="Choose from Photos" variant="secondary" onPress={pickPhoto} />
         </View>
 
-        <Button title="Start Scanning" disabled />
         <View className="flex-1" />
-        <Text className="mb-4 text-center text-xs text-warm-gray">API {apiStatus} · {env.stage}</Text>
-        <Button title="Sign Out" variant="ghost" onPress={signOut} />
+        <Text className="mt-8 text-center text-xs text-warm-gray">
+          {remainingThisMonth !== null ? `${remainingThisMonth} of ${SCAN_MONTHLY_LIMIT} scans left this month` : `${SCAN_MONTHLY_LIMIT} scans per month`}
+          {env.stage !== 'prod' ? ` · ${env.stage}` : ''}
+          {user?.isAdmin ? ' · admin' : ''}
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
