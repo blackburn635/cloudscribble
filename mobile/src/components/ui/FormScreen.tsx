@@ -1,11 +1,12 @@
 /**
  * FormScreen — shared layout for the auth screens: safe area, keyboard avoidance,
- * scroll, optional "← Back", title and subtitle, plus an inline error banner.
+ * scroll, optional Back link, title and subtitle, plus an inline error banner.
  */
 import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { Icon } from './Icon';
 
 interface FormScreenProps {
   title: string;
@@ -27,8 +28,9 @@ export function FormScreen({ title, subtitle, onBack, error, children }: FormScr
         >
           <View className="mb-10">
             {onBack && (
-              <Pressable onPress={onBack} hitSlop={12} className="mb-5 self-start" accessibilityRole="button">
-                <Text className="text-base font-semibold text-purple">← Back</Text>
+              <Pressable onPress={onBack} hitSlop={12} className="mb-5 flex-row items-center self-start" accessibilityRole="button" accessibilityLabel="Back">
+                <Icon name="chevron.backward" size={17} color="#6774c8" fallback="‹" />
+                <Text className="ml-1 text-base font-semibold text-purple">Back</Text>
               </Pressable>
             )}
             <Text className="mb-2 text-[32px] font-bold text-navy">{title}</Text>

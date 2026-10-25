@@ -13,12 +13,13 @@ import { useAuth } from '../../context/AuthContext';
 import { useScanSession } from '../../scan/ScanSession';
 import { env } from '../../config/env';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
 
 const STEPS = [
-  { icon: '📸', text: 'Photograph a planner page' },
-  { icon: '✏️', text: 'Check and fix the events' },
-  { icon: '📅', text: 'Save them to your calendar' },
-];
+  { icon: 'camera.fill', fallback: '📸', text: 'Photograph a planner page' },
+  { icon: 'pencil', fallback: '✏️', text: 'Check and fix the events' },
+  { icon: 'calendar.badge.plus', fallback: '📅', text: 'Save them to your calendar' },
+] as const;
 
 export function HomeScreen({ navigation }: NativeStackScreenProps<AppStackParamList, 'Home'>) {
   const { user, signOut } = useAuth();
@@ -48,7 +49,7 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<AppStackParamL
 
         {STEPS.map((s) => (
           <View key={s.text} className="mb-3 flex-row items-center rounded-xl border-l-4 border-purple bg-white p-4">
-            <Text className="mr-4 text-2xl">{s.icon}</Text>
+            <View className="mr-4 w-8 items-center"><Icon name={s.icon} size={24} color="#6774c8" fallback={s.fallback} /></View>
             <Text className="text-base font-medium text-navy">{s.text}</Text>
           </View>
         ))}

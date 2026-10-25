@@ -7,6 +7,7 @@ import { Modal, Pressable, ScrollView, Switch, Text, TextInput, View } from 'rea
 import type { EditableEvent } from '../../scan/ScanSession';
 import { addDays, formatDay, formatTime } from '../../scan/format';
 import { Button } from '../ui/Button';
+import { Icon } from '../ui/Icon';
 import { TimePickerModal } from './TimePickerModal';
 
 interface Props {
@@ -71,7 +72,7 @@ export function EditEventModal({ visible, event, days, isNew, onCancel, onSave, 
               <Text className="text-2xl font-bold text-navy">{isNew ? 'Add Event' : 'Edit Event'}</Text>
               {!isNew && (
                 <Pressable onPress={() => setConfirmDelete(true)} hitSlop={10} accessibilityLabel="Delete event">
-                  <Text className="text-2xl">🗑️</Text>
+                  <Icon name="trash" size={22} color="#b91c1c" fallback="🗑" />
                 </Pressable>
               )}
             </View>
@@ -104,8 +105,8 @@ export function EditEventModal({ visible, event, days, isNew, onCancel, onSave, 
                 })}
               </ScrollView>
               <View className="mt-2 flex-row gap-4">
-                <Pressable onPress={() => set({ date: addDays(draft.date, -1) })} hitSlop={8}><Text className="text-purple">‹ Day before</Text></Pressable>
-                <Pressable onPress={() => set({ date: addDays(draft.date, 1) })} hitSlop={8}><Text className="text-purple">Day after ›</Text></Pressable>
+                <Pressable onPress={() => set({ date: addDays(draft.date, -1) })} hitSlop={8} className="flex-row items-center"><Icon name="chevron.backward" size={13} color="#6774c8" fallback="‹" /><Text className="ml-1 text-purple">Day before</Text></Pressable>
+                <Pressable onPress={() => set({ date: addDays(draft.date, 1) })} hitSlop={8} className="flex-row items-center"><Text className="mr-1 text-purple">Day after</Text><Icon name="chevron.forward" size={13} color="#6774c8" fallback="›" /></Pressable>
               </View>
             </View>
 
@@ -123,12 +124,12 @@ export function EditEventModal({ visible, event, days, isNew, onCancel, onSave, 
                 <View className={`${row} flex-row gap-3`}>
                   <Pressable onPress={() => setPicker('start')} className={`flex-1 ${field}`}>
                     <Text className="text-xs text-warm-gray">Start</Text>
-                    <Text className="text-lg font-semibold text-navy">{draft.start ? formatTime(draft.start) : 'Choose'} ⏰</Text>
+                    <View className="flex-row items-center justify-between"><Text className="text-lg font-semibold text-navy">{draft.start ? formatTime(draft.start) : 'Choose'}</Text><Icon name="clock" size={18} fallback="⏰" /></View>
                   </Pressable>
                   {hasRange && (
                     <Pressable onPress={() => setPicker('end')} className={`flex-1 ${field}`}>
                       <Text className="text-xs text-warm-gray">End</Text>
-                      <Text className="text-lg font-semibold text-navy">{draft.end ? formatTime(draft.end) : 'Choose'} ⏰</Text>
+                      <View className="flex-row items-center justify-between"><Text className="text-lg font-semibold text-navy">{draft.end ? formatTime(draft.end) : 'Choose'}</Text><Icon name="clock" size={18} fallback="⏰" /></View>
                     </Pressable>
                   )}
                 </View>

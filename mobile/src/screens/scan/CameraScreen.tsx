@@ -12,6 +12,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../../navigation/types';
 import { useScanSession } from '../../scan/ScanSession';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
 
 export function CameraScreen({ navigation }: NativeStackScreenProps<AppStackParamList, 'Camera'>) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -19,6 +20,7 @@ export function CameraScreen({ navigation }: NativeStackScreenProps<AppStackPara
   const [ready, setReady] = useState(false);
   const [capturing, setCapturing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [flashOn, setFlashOn] = useState(false);
   const { startScan } = useScanSession();
   const { width } = useWindowDimensions();
   const guideWidth = width * 0.86;
@@ -76,7 +78,7 @@ export function CameraScreen({ navigation }: NativeStackScreenProps<AppStackPara
   return (
     <View className="flex-1 bg-black">
       <StatusBar style="light" />
-      <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" onCameraReady={() => setReady(true)} />
+      <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" flash={flashOn ? 'on' : 'off'} onCameraReady={() => setReady(true)} />
 
       {/* Page guide */}
       <View pointerEvents="none" className="absolute inset-0 items-center justify-center">
@@ -85,16 +87,21 @@ export function CameraScreen({ navigation }: NativeStackScreenProps<AppStackPara
       </View>
 
       <SafeAreaView className="absolute inset-x-0 top-0" edges={['top']}>
-        <Pressable onPress={navigation.goBack} hitSlop={12} className="ml-4 mt-2 self-start rounded-full bg-black/50 px-4 py-2">
-          <Text className="text-base font-semibold text-white">✕ Cancel</Text>
-        </Pressable>
+        <View className="mx-4 mt-2 flex-row justify-between">
+          <Pressable onPress={navigation.goBack} hitSlop={12} accessibilityLabel="Cancel" className="h-11 w-11 items-center justify-center rounded-full bg-black/50">
+            <Icon name="xmark" size={20} color="#ffffff" fallback="✕" />
+          </Pressable>
+          <Pressable onPress={() => setFlashOn((f) => !f)} hitSlop={12} accessibilityLabel={flashOn ? 'Turn flash off' : 'Turn flash on'} className="h-11 w-11 items-center justify-center rounded-full bg-black/50">
+            <Icon name={flashOn ? 'bolt.fill' : 'bolt.slash.fill'} size={20} color={flashOn ? '#FFCC33' : '#ffffff'} fallback="⚡" />
+          </Pressable>
+        </View>
       </SafeAreaView>
 
       <SafeAreaView className="absolute inset-x-0 bottom-0" edges={['bottom']}>
         {error && <Text className="mb-3 text-center text-base text-white">{error}</Text>}
         <View className="mb-4 flex-row items-center justify-between px-8">
-          <Pressable onPress={pickPhoto} hitSlop={10} className="w-20 rounded-full bg-black/50 py-2">
-            <Text className="text-center text-sm font-semibold text-white">Photos</Text>
+          <Pressable onPress={pickPhoto} hitSlop={10} accessibilityLabel="Choose from Photos" className="h-14 w-20 items-center justify-center">
+            <Icon name="photo.on.rectangle" size={30} color="#ffffff" fallback="🖼" />
           </Pressable>
           <Pressable
             onPress={capture}

@@ -7,6 +7,7 @@ import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import type { PreparedSync, SyncResult } from '../../scan/calendar';
 import { formatDay, formatWhen } from '../../scan/format';
 import { Button } from '../ui/Button';
+import { Icon } from '../ui/Icon';
 
 interface Props {
   visible: boolean;
@@ -34,7 +35,7 @@ export function SyncConfirmModal(p: Props) {
           <ScrollView showsVerticalScrollIndicator={false}>
             {p.result ? (
               <View className="items-center py-6">
-                <Text className="mb-2 text-5xl">✅</Text>
+                <View className="mb-3"><Icon name="checkmark.circle.fill" size={56} color="#9CAF88" fallback="✅" /></View>
                 <Text className="mb-2 text-2xl font-bold text-navy">Saved to {p.calendarName}</Text>
                 <Text className="text-center text-base text-warm-gray">
                   {p.result.created} added · {p.result.updated} updated{p.result.deleted ? ` · ${p.result.deleted} removed` : ''}
@@ -62,7 +63,7 @@ export function SyncConfirmModal(p: Props) {
                       return (
                         <Pressable key={r.eventId} onPress={() => p.onToggleDelete(r.eventId)} className="mb-2 flex-row items-center">
                           <View className={`mr-3 h-6 w-6 items-center justify-center rounded border-2 ${on ? 'border-red-700 bg-red-700' : 'border-warm-gray'}`}>
-                            {on && <Text className="text-xs font-bold text-white">✓</Text>}
+                            {on && <Icon name="checkmark" size={13} color="#ffffff" weight="bold" fallback="✓" />}
                           </View>
                           <Text className="flex-1 text-base text-navy">
                             {r.title} <Text className="text-warm-gray">· {formatDay(r.date)}</Text>
@@ -75,7 +76,7 @@ export function SyncConfirmModal(p: Props) {
 
                 {plan.writeInPlanner.length > 0 && (
                   <View className="mb-5 rounded-xl bg-gold-pale/60 p-4">
-                    <Text className="mb-1 text-base font-semibold text-navy">✍️ Write in your planner</Text>
+                    <View className="mb-1 flex-row items-center"><Icon name="square.and.pencil" size={18} fallback="✍️" /><Text className="ml-2 text-base font-semibold text-navy">Write in your planner</Text></View>
                     <Text className="mb-3 text-sm text-warm-gray">These are in your calendar for these days but not on the page.</Text>
                     {plan.writeInPlanner.map((e) => (
                       <Text key={e.id} className="mb-1 text-base text-navy">

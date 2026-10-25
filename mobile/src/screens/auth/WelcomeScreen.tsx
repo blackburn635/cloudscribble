@@ -4,12 +4,13 @@ import { StatusBar } from 'expo-status-bar';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/types';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
 
 const FEATURES = [
-  { icon: '📸', text: 'Scan any planner page' },
-  { icon: '🤖', text: 'AI reads your handwriting' },
-  { icon: '📅', text: 'Events go to your calendar' },
-];
+  { icon: 'camera.fill', fallback: '📸', text: 'Scan any planner page' },
+  { icon: 'sparkles', fallback: '✨', text: 'AI reads your handwriting' },
+  { icon: 'calendar.badge.plus', fallback: '📅', text: 'Events go to your calendar' },
+] as const;
 
 export function WelcomeScreen({ navigation }: NativeStackScreenProps<AuthStackParamList, 'Welcome'>) {
   return (
@@ -35,7 +36,7 @@ export function WelcomeScreen({ navigation }: NativeStackScreenProps<AuthStackPa
         <View className="mb-10">
           {FEATURES.map((f) => (
             <View key={f.text} className="mb-3 flex-row items-center rounded-xl border-l-4 border-purple bg-white p-4">
-              <Text className="mr-4 text-[28px]">{f.icon}</Text>
+              <View className="mr-4 w-8 items-center"><Icon name={f.icon} size={26} color="#6774c8" fallback={f.fallback} /></View>
               <Text className="text-base font-medium text-navy">{f.text}</Text>
             </View>
           ))}

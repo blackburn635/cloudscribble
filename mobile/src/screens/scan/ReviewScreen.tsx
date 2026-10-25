@@ -21,6 +21,7 @@ import {
   type WritableCalendar,
 } from '../../scan/calendar';
 import { Button } from '../../components/ui/Button';
+import { Icon } from '../../components/ui/Icon';
 import { EditEventModal } from '../../components/scan/EditEventModal';
 import { CalendarPickerModal } from '../../components/scan/CalendarPickerModal';
 import { SyncConfirmModal } from '../../components/scan/SyncConfirmModal';
@@ -107,9 +108,9 @@ export function ReviewScreen({ navigation }: NativeStackScreenProps<AppStackPara
     <SafeAreaView className="flex-1 bg-cream" edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <View className="flex-row items-center justify-between px-5 pb-2 pt-2">
-        <Pressable onPress={() => { reset(); navigation.popToTop(); }} hitSlop={10}><Text className="text-base font-semibold text-purple">✕ Discard</Text></Pressable>
+        <Pressable onPress={() => { reset(); navigation.popToTop(); }} hitSlop={10} className="flex-row items-center" accessibilityLabel="Discard scan"><Icon name="xmark" size={15} color="#6774c8" fallback="✕" /><Text className="ml-1 text-base font-semibold text-purple">Discard</Text></Pressable>
         <Text className="text-lg font-bold text-navy">Review</Text>
-        <Pressable onPress={() => navigation.replace('Camera')} hitSlop={10}><Text className="text-base font-semibold text-purple">Retake</Text></Pressable>
+        <Pressable onPress={() => navigation.replace('Camera')} hitSlop={10} className="flex-row items-center" accessibilityLabel="Retake photo"><Icon name="camera.fill" size={15} color="#6774c8" fallback="📷" /><Text className="ml-1 text-base font-semibold text-purple">Retake</Text></Pressable>
       </View>
 
       <ScrollView contentContainerClassName="px-5 pb-6">
@@ -145,13 +146,16 @@ export function ReviewScreen({ navigation }: NativeStackScreenProps<AppStackPara
                   <Text className="text-sm text-warm-gray">{formatWhen(e)}{e.note ? ` · ${e.note}` : ''}</Text>
                 </View>
                 {e.confidence < 0.6 && <Text className="mr-2 text-xs font-semibold text-gold">Check</Text>}
-                <Text className="text-lg text-purple">✎</Text>
+                <Icon name="pencil" size={18} color="#6774c8" fallback="✎" />
               </Pressable>
             ))}
           </View>
         ))}
 
-        <Button title="+ Add an Event" variant="ghost" onPress={() => setEditing({ event: blank(), isNew: true })} />
+        <Pressable onPress={() => setEditing({ event: blank(), isNew: true })} className="flex-row items-center justify-center py-3" accessibilityRole="button">
+          <Icon name="plus.circle.fill" size={20} color="#6774c8" fallback="+" />
+          <Text className="ml-2 text-base font-semibold text-purple">Add an Event</Text>
+        </Pressable>
       </ScrollView>
 
       <View className="px-5 pb-3">

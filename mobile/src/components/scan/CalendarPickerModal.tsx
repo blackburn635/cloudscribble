@@ -1,6 +1,7 @@
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import type { WritableCalendar } from '../../scan/calendar';
 import { Button } from '../ui/Button';
+import { Icon } from '../ui/Icon';
 
 interface Props {
   visible: boolean;
@@ -32,7 +33,7 @@ export function CalendarPickerModal({ visible, calendars, selectedId, onSelect, 
                     <Text className="text-base font-semibold text-navy">{c.title}</Text>
                     {!!c.source && <Text className="text-xs text-warm-gray">{c.source}</Text>}
                   </View>
-                  {active && <Text className="text-lg text-purple">✓</Text>}
+                  {active && <Icon name="checkmark.circle.fill" size={22} color="#6774c8" fallback="✓" />}
                 </Pressable>
               );
             })}
