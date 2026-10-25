@@ -1,8 +1,8 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
-// Expo's config loader can't import TypeScript from packages/shared, so the two brand values
+// Expo's config loader can't import TypeScript from packages/shared, so the brand values
 // needed here are copied — keep them in sync with packages/shared/src/constants/branding.ts.
 const APP_NAME = 'CloudScribble';
-const CREAM = '#FDF8F0';
+const NAVY = '#283593';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -14,7 +14,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   platforms: ['ios', 'android'],
   orientation: 'portrait',
   userInterfaceStyle: 'light',
-  icon: './assets/icon.png', // TODO: real 1024×1024 icon (no transparency) from docs/brand/logo-master.pdf
+  icon: './assets/icon.png', // 1024×1024, no alpha — white cloud on purple→navy gradient (docs/brand/app-icon-1024.png)
   ios: {
     bundleIdentifier: 'com.cloudscribble.app',
     supportsTablet: false,
@@ -25,8 +25,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: 'com.cloudscribble.app',
     adaptiveIcon: {
-      foregroundImage: './assets/android-icon-foreground.png',
-      backgroundColor: CREAM,
+      foregroundImage: './assets/adaptive-icon.png',
+      backgroundColor: NAVY,
     },
   },
   plugins: [
@@ -35,7 +35,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     'expo-font',
     [
       'expo-splash-screen',
-      { image: './assets/splash-icon.png', imageWidth: 200, resizeMode: 'contain', backgroundColor: CREAM },
+      { image: './assets/splash-icon.png', imageWidth: 220, resizeMode: 'contain', backgroundColor: NAVY },
     ],
     // Before expo-camera so the camera string below wins. iOS uses the system photo picker
     // (no library permission prompt); the string is still required for review.
