@@ -11,7 +11,7 @@ Reference architecture: `docs/references/tabletryb-blueprint.md` (TableTryb, a w
 ## Product
 - One mobile app (Expo, iOS first, Android later): photograph **any** paper planner page → AI extracts events → events written to the phone's calendar.
 - Owner: CloudScribble LLC. App name: **CloudScribble** — one app that works with any paper planner (copy must never imply CloudScribble planners only); planner buyers get a free year via Apple Offer Code.
-- Monetization: **Apple-only** auto-renewing subscription (no web checkout). Price TBD: $1.99–2.99/mo, annual TBD — set in App Store Connect (see margin notes: heavy annual users are the thin case). Target ≥30% margin after store fees (15% via Small Business Program). Free trial via Apple introductory offer (7 or 14 days, TBD); no server-side trial. Planner buyers' free year = **Apple Offer Codes only** (planner price should cover ~$2/yr AI cost).
+- Monetization: **Apple-only** auto-renewing subscription (no web checkout). Prices (decided 2026-11-01): **$2.99/mo, $19.99/yr**, set in App Store Connect (heavy annual users are the thin-margin case). Target ≥30% margin after store fees (15% via Small Business Program). Free trial: **14 days** via Apple introductory offer (new subscribers); no server-side trial. Planner buyers' free year = **Apple Offer Codes only** (planner price should cover ~$2/yr AI cost).
 - CloudScribble planner buyers get **1 year free via Apple Offer Codes** (see Entitlements).
 - Fair-use cap: **100 scans/month** per user (`SCAN_MONTHLY_LIMIT`; keeps a maxed-out user within the 30% margin).
 
@@ -86,7 +86,6 @@ ORDER#<orderId>     CODE                   claimed code, claimedAt
 - macOS: `sed -i ''`.
 
 ## Open decisions
-- Prices ($1.99–2.99/mo, annual) and trial length (7 vs 14 days) — set in App Store Connect before submission.
 - Android timing.
 
 ## Build order

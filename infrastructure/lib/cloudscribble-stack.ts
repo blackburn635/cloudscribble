@@ -224,6 +224,22 @@ export class CloudScribbleStack extends cdk.Stack {
       ],
     });
 
+    const revenueCatWebhook = new ScribbleFunction(this, 'RevenueCatWebhook', {
+      stage, sharedEnv,
+      entry: 'subscription/revenuecat-webhook.ts',
+      description: 'RevenueCat webhook → USER#<sub>/SUBSCRIPTION#IAP',
+      timeout: 10,
+      policies: [new iam.PolicyStatement({ actions: ['dynamodb:PutItem'], resources: [table.tableArn] })],
+    });
+
+    const subscriptionStatus = new ScribbleFunction(this, 'SubscriptionStatus', {
+      stage, sharedEnv,
+      entry: 'subscription/get-status.ts',
+      description: 'Subscription access + scans left for the caller',
+      timeout: 10,
+      policies: [new iam.PolicyStatement({ actions: ['dynamodb:Query', 'dynamodb:GetItem'], resources: [table.tableArn] })],
+    });
+
     // ==================================================================
     // API Gateway (HTTP API)
     // ==================================================================
@@ -285,11 +301,13 @@ export class CloudScribbleStack extends cdk.Stack {
     // --- Public routes ---
     addRoute(apigatewayv2.HttpMethod.GET, '/v1/health', healthGet, { noAuth: true });
     const contactRoutes = addRoute(apigatewayv2.HttpMethod.POST, '/v1/contact', contactSubmit, { noAuth: true });
+    addRoute(apigatewayv2.HttpMethod.POST, '/v1/webhooks/revenuecat', revenueCatWebhook, { noAuth: true }); // shared-secret auth
 
     // --- Authenticated routes ---
     addRoute(apigatewayv2.HttpMethod.POST, '/v1/uploads', uploadsCreate);
     const scansRoutes = addRoute(apigatewayv2.HttpMethod.POST, '/v1/scans', scansCreate);
     addRoute(apigatewayv2.HttpMethod.DELETE, '/v1/users/me', usersDeleteMe);
+    addRoute(apigatewayv2.HttpMethod.GET, '/v1/subscription/status', subscriptionStatus);
 
     // Stage RouteSettings reference routes by key — the stage must update after those routes exist.
     httpApi.defaultStage!.node.addDependency(...scansRoutes, ...contactRoutes);
