@@ -12,4 +12,6 @@ export const env = {
   apiUrl: required('EXPO_PUBLIC_API_URL', process.env.EXPO_PUBLIC_API_URL),
   userPoolId: required('EXPO_PUBLIC_USER_POOL_ID', process.env.EXPO_PUBLIC_USER_POOL_ID),
   userPoolClientId: required('EXPO_PUBLIC_USER_POOL_CLIENT_ID', process.env.EXPO_PUBLIC_USER_POOL_CLIENT_ID),
+  /** RevenueCat public iOS SDK key (appl_…). Optional until RevenueCat is set up — the paywall says so. */
+  revenueCatIosKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY || undefined,
 };

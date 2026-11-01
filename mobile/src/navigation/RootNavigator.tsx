@@ -12,6 +12,8 @@ import { SignUpScreen } from '../screens/auth/SignUpScreen';
 import { VerifyEmailScreen } from '../screens/auth/VerifyEmailScreen';
 import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
 import { HomeScreen } from '../screens/app/HomeScreen';
+import { PaywallScreen } from '../screens/app/PaywallScreen';
+import { SettingsScreen } from '../screens/app/SettingsScreen';
 import { CameraScreen } from '../screens/scan/CameraScreen';
 import { ScanningScreen } from '../screens/scan/ScanningScreen';
 import { ReviewScreen } from '../screens/scan/ReviewScreen';
@@ -38,6 +40,8 @@ function AppStack() {
       <App.Screen name="Camera" component={CameraScreen} options={{ animation: 'fade' }} />
       <App.Screen name="Scanning" component={ScanningScreen} options={{ gestureEnabled: false }} />
       <App.Screen name="Review" component={ReviewScreen} options={{ gestureEnabled: false }} />
+      <App.Screen name="Paywall" component={PaywallScreen} options={{ presentation: 'modal' }} />
+      <App.Screen name="Settings" component={SettingsScreen} />
     </App.Navigator>
   );
 }

@@ -1,16 +1,20 @@
 /**
  * Home — the archived home view: logo header, greeting, how-it-works list, Start Scanning,
- * plus Choose from Photos and the scans-left count (from the last scan this session).
+ * plus Choose from Photos and the scans-left count. Scanning without access opens the Paywall
+ * (the API enforces it too); status refreshes whenever Home regains focus.
  */
+import { useCallback } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SCAN_MONTHLY_LIMIT } from '@cloudscribble/shared';
 import type { AppStackParamList } from '../../navigation/types';
 import { useAuth } from '../../context/AuthContext';
 import { useScanSession } from '../../scan/ScanSession';
+import { useSubscription } from '../../subscription/SubscriptionProvider';
 import { env } from '../../config/env';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
@@ -22,10 +26,26 @@ const STEPS = [
 ] as const;
 
 export function HomeScreen({ navigation }: NativeStackScreenProps<AppStackParamList, 'Home'>) {
-  const { user, signOut } = useAuth();
-  const { startScan, remainingThisMonth, reset } = useScanSession();
+  const { user } = useAuth();
+  const { startScan, remainingThisMonth: lastScanRemaining } = useScanSession();
+  const { status, refresh } = useSubscription();
+  const remainingThisMonth = status?.remainingThisMonth ?? lastScanRemaining;
+  // Unknown status (offline / still loading) → let the API decide.
+  const locked = status !== null && !status.hasAccess;
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  function startCamera() {
+    if (locked) return navigation.navigate('Paywall');
+    navigation.navigate('Camera');
+  }
 
   async function pickPhoto() {
+    if (locked) return navigation.navigate('Paywall');
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
     if (res.canceled || !res.assets?.[0]) return;
     const a = res.assets[0];
@@ -38,8 +58,8 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<AppStackParamL
       <StatusBar style="dark" />
       <View className="flex-row items-center justify-between px-5 pt-2">
         <Image source={require('../../../assets/images/logo.png')} className="h-[90px] w-[230px]" resizeMode="contain" accessibilityLabel="CloudScribble" />
-        <Pressable onPress={() => { reset(); signOut(); }} hitSlop={10}>
-          <Text className="text-sm font-semibold text-purple">Sign Out</Text>
+        <Pressable onPress={() => navigation.navigate('Settings')} hitSlop={10} accessibilityLabel="Settings">
+          <Icon name="gearshape.fill" size={24} color="#6774c8" fallback="⚙" />
         </Pressable>
       </View>
 
@@ -55,7 +75,12 @@ export function HomeScreen({ navigation }: NativeStackScreenProps<AppStackParamL
         ))}
 
         <View className="mt-6 gap-3">
-          <Button title="Start Scanning" onPress={() => navigation.navigate('Camera')} />
+          {locked && (
+            <Pressable onPress={() => navigation.navigate('Paywall')} className="mb-1 rounded-xl bg-lavender p-4">
+              <Text className="text-center text-base font-semibold text-navy">Subscribe to scan — new subscribers get 14 days free</Text>
+            </Pressable>
+          )}
+          <Button title="Start Scanning" onPress={startCamera} />
           <Button title="Choose from Photos" variant="secondary" onPress={pickPhoto} />
         </View>
 

@@ -9,6 +9,7 @@ import type { AppStackParamList } from '../../navigation/types';
 import { useScanSession } from '../../scan/ScanSession';
 import { prepareForScan } from '../../scan/imagePrep';
 import { scanErrorMessage, useScanApi } from '../../scan/useScanApi';
+import { ApiError } from '../../lib/api';
 import { Button } from '../../components/ui/Button';
 
 const STEPS = { prepare: 'Preparing photo…', upload: 'Uploading…', scan: 'Reading your handwriting…' } as const;
@@ -33,6 +34,7 @@ export function ScanningScreen({ navigation, route }: NativeStackScreenProps<App
       setResult(result);
       navigation.replace('Review');
     } catch (err) {
+      if (err instanceof ApiError && err.code === 'SUBSCRIPTION_REQUIRED') return navigation.replace('Paywall');
       setError(scanErrorMessage(err));
     }
   }, [photoUri, route.params, upload, scan, setResult, navigation]);

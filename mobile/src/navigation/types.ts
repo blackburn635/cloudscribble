@@ -11,4 +11,6 @@ export type AppStackParamList = {
   Camera: undefined;
   Scanning: { width?: number; height?: number } | undefined;
   Review: undefined;
+  Paywall: undefined;
+  Settings: undefined;
 };
