@@ -229,7 +229,10 @@ export class CloudScribbleStack extends cdk.Stack {
       entry: 'subscription/revenuecat-webhook.ts',
       description: 'RevenueCat webhook → USER#<sub>/SUBSCRIPTION#IAP',
       timeout: 10,
-      policies: [new iam.PolicyStatement({ actions: ['dynamodb:PutItem'], resources: [table.tableArn] })],
+      policies: [
+        new iam.PolicyStatement({ actions: ['dynamodb:PutItem'], resources: [table.tableArn] }),
+        new iam.PolicyStatement({ actions: ['cognito-idp:ListUsers'], resources: [userPool.userPoolArn] }),
+      ],
     });
 
     const subscriptionStatus = new ScribbleFunction(this, 'SubscriptionStatus', {

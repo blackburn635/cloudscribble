@@ -2,6 +2,7 @@ import { AdminDeleteUserCommand, CognitoIdentityProviderClient, UserNotFoundExce
 import { BatchWriteCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import type { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyResultV2 } from 'aws-lambda';
 import { getAuthUser } from '../_shared/auth';
+import { getSecret } from '../_shared/secrets';
 import { docClient, TABLE_NAME } from '../_shared/dynamo';
 import { error, noContent } from '../_shared/response';
 
@@ -39,6 +40,29 @@ async function deleteUserItems(userId: string): Promise<number> {
 }
 
 /**
+ * Best-effort: delete the RevenueCat customer so it stops sending webhooks for this user.
+ * Optional — skipped when REVENUECAT_SECRET_API_KEY isn't configured; never fails the deletion.
+ */
+async function deleteRevenueCatCustomer(userId: string): Promise<void> {
+  let key: string;
+  try {
+    key = await getSecret('REVENUECAT_SECRET_API_KEY');
+  } catch {
+    return;
+  }
+  try {
+    const res = await fetch(`https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(userId)}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${key}` },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok && res.status !== 404) console.warn('RevenueCat customer delete failed', res.status);
+  } catch (err) {
+    console.warn('RevenueCat customer delete failed', err);
+  }
+}
+
+/**
  * DELETE /v1/users/me — permanent account deletion (Apple 5.1.1(v)); always allowed.
  * Data first, then the Cognito user, so a failure can be retried while the user can still sign in.
  * App Store subscriptions are not cancelled by this — the clients tell the user to cancel with Apple.
@@ -54,6 +78,8 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): P
     } catch (err) {
       if (!(err instanceof UserNotFoundException)) throw err;
     }
+
+    await deleteRevenueCatCustomer(user.userId);
 
     console.log(JSON.stringify({ msg: 'account deleted', user: user.userId, items }));
     return noContent(event);

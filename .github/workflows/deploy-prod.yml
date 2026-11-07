@@ -40,14 +40,17 @@ jobs:
         env:
           TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
           REVENUECAT_WEBHOOK_SECRET: ${{ secrets.REVENUECAT_WEBHOOK_SECRET }}
+          REVENUECAT_SECRET_API_KEY: ${{ secrets.REVENUECAT_SECRET_API_KEY }}
         run: |
           SECRET_NAME="cloudscribble/prod/secrets"
           SECRET_JSON=$(jq -n \
             --arg ts "${TURNSTILE_SECRET_KEY:-}" \
             --arg rw "${REVENUECAT_WEBHOOK_SECRET:-}" \
+            --arg rk "${REVENUECAT_SECRET_API_KEY:-}" \
             '{
               TURNSTILE_SECRET_KEY: $ts,
-              REVENUECAT_WEBHOOK_SECRET: $rw
+              REVENUECAT_WEBHOOK_SECRET: $rw,
+              REVENUECAT_SECRET_API_KEY: $rk
             } | with_entries(select(.value != ""))')
 
           if aws secretsmanager describe-secret --secret-id "$SECRET_NAME" --region us-east-2 >/dev/null 2>&1; then
