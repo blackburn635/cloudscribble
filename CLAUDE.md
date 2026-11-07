@@ -59,6 +59,7 @@ ORDER#<orderId>     CODE                   claimed code, claimedAt
 
 ## Entitlements & billing
 - RevenueCat over App Store (Google Play later). App User ID = Cognito `sub`. Entitlement ID **`cloudscribble_access`** (permanent — never rename). One RevenueCat account shared with TableTryb (separate projects).
+- App Store products (reused from the archived app, one subscription group): `com.cloudscribble.basic.monthly`, `com.cloudscribble.basic.annual`, each with a 2-week free intro offer. RevenueCat current offering `standard` (`$rc_monthly`, `$rc_annual`); the app reads `offerings.current`, never an offering ID. ASC app ID `6755850778`.
 - Bundle ID `com.cloudscribble.app`. EAS under Expo account `@blackburn635`. Sentry added before TestFlight.
 - Webhook derives status from ground-truth fields, timing-safe auth compare, ignores SANDBOX in prod, returns 500 on unexpected errors.
 - **Apple guideline 3.1.1: never unlock features with our own codes/license keys.** Planner free year = **Apple Offer Codes** only.
