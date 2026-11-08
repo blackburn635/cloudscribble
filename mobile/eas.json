@@ -17,7 +17,8 @@
         "EXPO_PUBLIC_USER_POOL_ID": "us-east-2_YKMiQ8ZCl",
         "EXPO_PUBLIC_USER_POOL_CLIENT_ID": "31mk05np0h438qg0rf3pc6r3qo",
         "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_rtRkejayvafWHbNfwwibDyjRXqN",
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://0e62ee2296ec6ea93a4270ad47026021@o4511175262142464.ingest.us.sentry.io/4512397519028224"
       },
       "autoIncrement": true
     },
@@ -38,7 +39,8 @@
         "EXPO_PUBLIC_USER_POOL_ID": "us-east-2_YKMiQ8ZCl",
         "EXPO_PUBLIC_USER_POOL_CLIENT_ID": "31mk05np0h438qg0rf3pc6r3qo",
         "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_rtRkejayvafWHbNfwwibDyjRXqN",
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://0e62ee2296ec6ea93a4270ad47026021@o4511175262142464.ingest.us.sentry.io/4512397519028224"
       },
       "autoIncrement": true
     },
@@ -53,7 +55,8 @@
         "EXPO_PUBLIC_USER_POOL_ID": "TODO-prod-UserPoolId",
         "EXPO_PUBLIC_USER_POOL_CLIENT_ID": "TODO-prod-UserPoolClientIdMobile",
         "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_rtRkejayvafWHbNfwwibDyjRXqN",
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_SENTRY_DSN": "https://0e62ee2296ec6ea93a4270ad47026021@o4511175262142464.ingest.us.sentry.io/4512397519028224"
       }
     }
   },
