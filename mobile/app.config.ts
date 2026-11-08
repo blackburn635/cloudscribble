@@ -32,6 +32,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-dev-client',
     'expo-secure-store',
+    // Source-map upload is disabled (SENTRY_DISABLE_AUTO_UPLOAD in eas.json) until a Sentry auth token is set up.
+    '@sentry/react-native',
     'expo-font',
     [
       'expo-splash-screen',

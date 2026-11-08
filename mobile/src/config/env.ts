@@ -14,4 +14,6 @@ export const env = {
   userPoolClientId: required('EXPO_PUBLIC_USER_POOL_CLIENT_ID', process.env.EXPO_PUBLIC_USER_POOL_CLIENT_ID),
   /** RevenueCat public iOS SDK key (appl_…). Optional until RevenueCat is set up — the paywall says so. */
   revenueCatIosKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY || undefined,
+  /** Sentry DSN for project `cloudscribble-mobile`. Optional — no DSN, no crash reporting. */
+  sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN || undefined,
 };
