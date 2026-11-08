@@ -61,7 +61,7 @@ ORDER#<orderId>     CODE                   claimed code, claimedAt
 - RevenueCat over App Store (Google Play later). App User ID = Cognito `sub`. Entitlement ID **`cloudscribble_access`** (permanent — never rename). One RevenueCat account shared with TableTryb (separate projects).
 - App Store products (reused from the archived app, one subscription group): `com.cloudscribble.basic.monthly`, `com.cloudscribble.basic.annual`, each with a 2-week free intro offer. RevenueCat current offering `standard` (`$rc_monthly`, `$rc_annual`); the app reads `offerings.current`, never an offering ID. ASC app ID `6755850778`.
 - Bundle ID `com.cloudscribble.app`. EAS under Expo account `@blackburn635`. Sentry added before TestFlight.
-- Webhook derives status from ground-truth fields, timing-safe auth compare, ignores SANDBOX in prod, returns 500 on unexpected errors.
+- Webhook derives status from ground-truth fields, timing-safe auth compare, accepts SANDBOX in prod (App Review/TestFlight buy in sandbox; decided 2026-11-08), stores `environment`, returns 500 on unexpected errors.
 - **Apple guideline 3.1.1: never unlock features with our own codes/license keys.** Planner free year = **Apple Offer Codes** only.
 - Offer codes: one-time-use, created via App Store Connect API in batches (500–25,000), **expire ≤6 months from creation**, 1M/app/quarter.
   - Monthly scheduled Lambda replenishes pool when available < 200.

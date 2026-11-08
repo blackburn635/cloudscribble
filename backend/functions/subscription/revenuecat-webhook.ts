@@ -4,7 +4,8 @@
  *
  * - App User ID = Cognito sub (the app calls Purchases.logIn(sub)).
  * - Writes are ordered by event_timestamp_ms: an older event never overwrites a newer one.
- * - SANDBOX events are ignored in prod (TestFlight purchases can't grant production access).
+ * - SANDBOX events are accepted in prod too: App Review and TestFlight buy with sandbox accounts against
+ *   the production app (only builds we sign can make sandbox purchases). `environment` is stored.
  * - Events for deleted accounts are ignored (deleting the account doesn't cancel the Apple subscription,
  *   so renewals keep arriving and would otherwise recreate an orphaned record).
  * - Unexpected errors return 500 so RevenueCat retries; skips/bad input return 200.
@@ -44,7 +45,6 @@ async function _handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyR
     const rc: RevenueCatEvent = JSON.parse(event.body || '{}').event || {};
     const type = rc.type;
     if (!type || !HANDLED_EVENT_TYPES.has(type)) return ok(`skipped: ${type ?? 'no type'}`);
-    if (process.env.STAGE === 'prod' && rc.environment === 'SANDBOX') return ok('skipped: sandbox in prod');
 
     const userId = rc.app_user_id;
     if (!userId || userId.startsWith('$RCAnonymousID:')) {
