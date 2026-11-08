@@ -45,7 +45,8 @@ new CloudScribbleStack(app, 'CloudScribble-prod', {
   description: 'CloudScribble — production',
   stage: 'prod',
   siteDomain: BRAND.domain,
-  extraOrigins: [`https://www.${BRAND.domain}`],
+  // + Amplify default domain for the main branch (to test the prod site before the domain cutover).
+  extraOrigins: [`https://www.${BRAND.domain}`, 'https://main.d2orlejbd6zz8l.amplifyapp.com'],
   emailDomain: BRAND.domain,
 });
 
