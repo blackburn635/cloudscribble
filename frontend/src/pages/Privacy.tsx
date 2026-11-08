@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 import { BRAND, SCAN_MONTHLY_LIMIT } from '@cloudscribble/shared';
 import { Card, PageHero, Section, usePageTitle } from '../components/ui';
 
-const LAST_UPDATED = 'October 8, 2026';
+const LAST_UPDATED = 'November 8, 2026';
 const email = BRAND.supportEmail;
 
 export default function Privacy() {
@@ -78,6 +78,7 @@ export default function Privacy() {
             <li><strong>Amazon Web Services</strong> — hosting, storage, sign-in, email delivery, and the AI service that reads your pages (Anthropic’s Claude models, provided through Amazon Bedrock). Photos are processed only to read your page and are not used to train AI models.</li>
             <li><strong>Apple</strong> — App Store purchases and subscriptions.</li>
             <li><strong>RevenueCat</strong> — subscription status management.</li>
+            <li><strong>Sentry</strong> — crash and error reports (device and app details plus your account ID; never your photos or events).</li>
             <li><strong>Google</strong> — website analytics.</li>
             <li><strong>Cloudflare</strong> — spam protection on our contact form.</li>
           </ul>
