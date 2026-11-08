@@ -5,6 +5,7 @@ import { getAuthUser } from '../_shared/auth';
 import { getSecret } from '../_shared/secrets';
 import { docClient, TABLE_NAME } from '../_shared/dynamo';
 import { error, noContent } from '../_shared/response';
+import { wrapHandler } from '../_shared/sentry';
 
 const cognito = new CognitoIdentityProviderClient({});
 
@@ -67,7 +68,7 @@ async function deleteRevenueCatCustomer(userId: string): Promise<void> {
  * Data first, then the Cognito user, so a failure can be retried while the user can still sign in.
  * App Store subscriptions are not cancelled by this — the clients tell the user to cancel with Apple.
  */
-export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
+async function _handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
   try {
     const user = getAuthUser(event);
     const username = String(event.requestContext.authorizer.jwt.claims['cognito:username'] ?? user.userId);
@@ -87,3 +88,5 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): P
     return error(err, event);
   }
 }
+
+export const handler = wrapHandler(_handler, 'users-delete-me');

@@ -15,6 +15,7 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from 'aws-lambda
 import { docClient, TABLE_NAME, isConditionalCheckFailed } from '../_shared/dynamo';
 import { getSecret } from '../_shared/secrets';
 import { authMatches, deriveStatus, HANDLED_EVENT_TYPES, mapSource, toIso, type RevenueCatEvent } from './revenuecat';
+import { captureError, wrapHandler } from '../_shared/sentry';
 
 const ok = (body: string): APIGatewayProxyResultV2 => ({ statusCode: 200, body });
 const cognito = new CognitoIdentityProviderClient({});
@@ -26,7 +27,7 @@ async function userExists(sub: string): Promise<boolean> {
   return (res.Users?.length ?? 0) > 0;
 }
 
-export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
+async function _handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   try {
     let secret: string;
     try {
@@ -103,6 +104,9 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     return ok('OK');
   } catch (err) {
     console.error('RevenueCat webhook error', err);
+    captureError(err);
     return { statusCode: 500, body: 'Internal error' };
   }
 }
+
+export const handler = wrapHandler(_handler, 'revenuecat-webhook');

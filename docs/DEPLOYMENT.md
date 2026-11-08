@@ -32,6 +32,7 @@ Source of truth: GitHub environment secrets → synced by the deploy workflow's 
 | `TURNSTILE_SECRET_KEY` | GitHub env secret (both) → blob | `contact/submit.ts` | Optional; missing → contact form returns 503 (never accepts unverified). Separate Turnstile widget per environment. |
 | `REVENUECAT_WEBHOOK_SECRET` | GitHub env secret (both) → blob | `subscription/revenuecat-webhook.ts` | Must equal the Authorization header value set on the RevenueCat webhook (per environment). Missing → webhook 500 (RevenueCat retries). |
 | `REVENUECAT_SECRET_API_KEY` | GitHub env secret (both) → blob | `users/delete-me.ts` | Optional RevenueCat secret key (`sk_…`, v1); account deletion also deletes the RevenueCat customer. Missing → skipped. |
+| `SENTRY_DSN` | GitHub env secret (both) → blob | `_shared/sentry.ts` | DSN of Sentry project `cloudscribble-backend` (not really secret, but kept with the others). Missing → no Sentry. |
 
 Bedrock uses IAM — no AI key.
 

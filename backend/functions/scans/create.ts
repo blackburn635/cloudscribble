@@ -15,6 +15,7 @@ import { error, parseBody, success } from '../_shared/response';
 import { hasScanAccess } from '../_shared/subscription';
 import { scanPage, type ScanImage } from './ai';
 import { isValidDate } from './validate';
+import { captureError, wrapHandler } from '../_shared/sentry';
 
 const s3 = new S3Client({});
 const BUCKET = process.env.SCANS_BUCKET!;
@@ -39,7 +40,7 @@ async function loadUpload(key: string): Promise<ScanImage> {
  * POST /v1/scans — auth → access → upload → quota → AI → validated events.
  * The device writes the events to its calendar; nothing about the events is stored.
  */
-export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
+async function _handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
   try {
     const user = getAuthUser(event);
     const { uploadKey, localDate } = parseBody<ScanRequest>(event.body);
@@ -62,6 +63,7 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): P
       scan = await scanPage(image, localDate);
     } catch (err) {
       console.error('Scan AI error', err);
+      captureError(err, { stage: 'ai' });
       await refundScan(user.userId);
       throw new AppError("We couldn't read that page right now. Please try again.", 502, 'SCAN_AI_ERROR');
     } finally {
@@ -89,3 +91,5 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): P
     return error(err, event);
   }
 }
+
+export const handler = wrapHandler(_handler, 'scans-create');

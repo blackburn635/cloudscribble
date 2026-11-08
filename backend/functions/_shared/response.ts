@@ -8,6 +8,7 @@ import type {
   APIGatewayProxyEventV2,
 } from 'aws-lambda';
 import { AppError } from './errors';
+import { captureError } from './sentry';
 
 /**
  * Access-Control-Allow-Origin accepts a single origin, so reflect the request
@@ -51,6 +52,7 @@ export function noContent(event?: APIGatewayProxyEventV2): APIGatewayProxyResult
 
 export function error(err: unknown, event?: APIGatewayProxyEventV2): APIGatewayProxyResultV2 {
   if (err instanceof AppError) {
+    if (err.statusCode >= 500) captureError(err);
     return {
       statusCode: err.statusCode,
       headers: getCorsHeaders(event),
@@ -62,6 +64,7 @@ export function error(err: unknown, event?: APIGatewayProxyEventV2): APIGatewayP
   }
 
   console.error('Unexpected error:', err);
+  captureError(err);
 
   return {
     statusCode: 500,

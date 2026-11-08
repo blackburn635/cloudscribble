@@ -9,8 +9,9 @@ import { getItem } from '../_shared/dynamo';
 import { error, success } from '../_shared/response';
 import { getEffectiveSubscription, inferSource } from '../_shared/subscription';
 import { usageMonth } from '../_shared/quota';
+import { wrapHandler } from '../_shared/sentry';
 
-export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
+async function _handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
   try {
     const user = getAuthUser(event);
     const [sub, usage] = await Promise.all([
@@ -36,3 +37,5 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): P
     return error(err, event);
   }
 }
+
+export const handler = wrapHandler(_handler, 'subscription-status');

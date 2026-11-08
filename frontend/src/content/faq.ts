@@ -104,7 +104,7 @@ export const FAQ: FaqCategory[] = [
       },
       {
         q: 'How do I delete my account?',
-        a: 'In the app, go to Settings → Delete Account, or visit cloudscribble.com/account/delete. If you have an App Store subscription, cancel it in your Apple account settings too.',
+        a: 'In the app, go to Settings → Delete Account, or visit cloudscribble.com/account/delete. Deleting your account does not cancel an App Store subscription — Apple keeps billing until you cancel it on your iPhone in Settings → your name → Subscriptions.',
       },
     ],
   },

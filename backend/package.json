@@ -18,7 +18,8 @@
     "@aws-sdk/client-sesv2": "^3.1147.0",
     "@aws-sdk/lib-dynamodb": "^3.1147.0",
     "@aws-sdk/s3-presigned-post": "^3.1147.0",
-    "@cloudscribble/shared": "*"
+    "@cloudscribble/shared": "*",
+    "@sentry/aws-serverless": "^9.47.2"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.164",

@@ -4,6 +4,7 @@ import { BRAND } from '@cloudscribble/shared';
 import { AppError, BadRequestError } from '../_shared/errors';
 import { error, parseBody, success } from '../_shared/response';
 import { getSecret } from '../_shared/secrets';
+import { wrapHandler } from '../_shared/sentry';
 
 const ses = new SESv2Client({});
 const TOPICS = new Set(['General question', 'Billing & subscriptions', 'App technical support', 'Planner offer code', 'Feedback & suggestions']);
@@ -36,7 +37,7 @@ async function verifyTurnstile(token: string, ip: string | undefined): Promise<b
 }
 
 /** POST /v1/contact — public support form → email to support@ (Reply-To: the sender). */
-export async function handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
+async function _handler(event: APIGatewayProxyEventV2): Promise<APIGatewayProxyResultV2> {
   try {
     const body = parseBody<ContactRequest>(event.body);
     if (body.website) return success({ ok: true }, 200, event); // bot: pretend success
@@ -75,3 +76,5 @@ export async function handler(event: APIGatewayProxyEventV2): Promise<APIGateway
     return error(err, event);
   }
 }
+
+export const handler = wrapHandler(_handler, 'contact-submit');

@@ -11,6 +11,7 @@ import {
 import { getAuthUser } from '../_shared/auth';
 import { BadRequestError } from '../_shared/errors';
 import { error, parseBody, success } from '../_shared/response';
+import { wrapHandler } from '../_shared/sentry';
 
 const s3 = new S3Client({});
 const EXPIRES_SECONDS = 300;
@@ -20,7 +21,7 @@ const EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', '
  * POST /v1/uploads — presigned POST for one scan image.
  * S3 enforces size (content-length-range), content type, and the server-chosen key.
  */
-export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
+async function _handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): Promise<APIGatewayProxyResultV2> {
   try {
     const user = getAuthUser(event);
     const { contentType } = parseBody<UploadRequest>(event.body);
@@ -46,3 +47,5 @@ export async function handler(event: APIGatewayProxyEventV2WithJWTAuthorizer): P
     return error(err, event);
   }
 }
+
+export const handler = wrapHandler(_handler, 'uploads-create');
